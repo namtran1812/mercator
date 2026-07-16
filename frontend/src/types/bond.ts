@@ -218,3 +218,27 @@ export interface ExecutionResponse {
   execution: Execution;
   rejected_quote_count: number;
 }
+
+export interface DealerAnalytics {
+  dealer: string;
+  quote_count: number;
+  execution_count: number;
+  hit_ratio: number;
+  average_latency_ms: number;
+  average_spread_bps: number;
+  average_price: number;
+}
+
+export interface RfqAnalyticsSummary {
+  rfq_count: number;
+  quoted_rfq_count: number;
+  executed_rfq_count: number;
+  execution_rate: number;
+  average_quotes_per_rfq: number;
+  average_dealer_latency_ms: number;
+  p95_dealer_latency_ms: number;
+  average_execution_latency_ms: number;
+  total_notional: number;
+  executed_notional: number;
+  dealers: DealerAnalytics[];
+}

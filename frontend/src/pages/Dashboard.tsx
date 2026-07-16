@@ -9,6 +9,7 @@ import { PortfolioPanel } from "../components/PortfolioPanel/PortfolioPanel";
 import { ReplayPanel } from "../components/ReplayPanel/ReplayPanel";
 import { LivePnlPanel } from "../components/LivePnlPanel/LivePnlPanel";
 import { RfqPanel } from "../components/RfqPanel/RfqPanel";
+import { RfqAnalyticsPanel } from "../components/RfqAnalyticsPanel/RfqAnalyticsPanel";
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
 import { usePriceStream } from "../hooks/usePriceStream";
@@ -127,6 +128,7 @@ export function Dashboard() {
           <BondGrid />
           <ScenarioPanel />
           <RfqPanel />
+          <RfqAnalyticsPanel />
           <PortfolioPanel />
           <LivePnlPanel />
           <ReplayPanel />

@@ -440,3 +440,130 @@ class RFQRepository:
                 positions = cursor.fetchall()
 
         return account, positions
+    def analytics_summary(
+        self,
+    ) -> tuple[
+        dict[str, Any],
+        list[dict[str, Any]],
+    ]:
+        with psycopg.connect(
+            POSTGRES_DSN,
+            row_factory=dict_row,
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                        count(*) AS rfq_count,
+
+                        count(*) FILTER (
+                            WHERE quote_count > 0
+                        ) AS quoted_rfq_count,
+
+                        count(*) FILTER (
+                            WHERE was_executed
+                        ) AS executed_rfq_count,
+
+                        COALESCE(
+                            avg(quote_count),
+                            0
+                        ) AS average_quotes_per_rfq,
+
+                        COALESCE(
+                            avg(average_latency_ms),
+                            0
+                        ) AS average_dealer_latency_ms,
+
+                        COALESCE(
+                            avg(execution_latency_ms)
+                                FILTER (
+                                    WHERE was_executed
+                                ),
+                            0
+                        ) AS average_execution_latency_ms,
+
+                        COALESCE(
+                            sum(quantity),
+                            0
+                        ) AS total_notional,
+
+                        COALESCE(
+                            sum(quantity) FILTER (
+                                WHERE was_executed
+                            ),
+                            0
+                        ) AS executed_notional
+
+                    FROM rfq_analytics
+                    """
+                )
+
+                summary = cursor.fetchone()
+
+                cursor.execute(
+                    """
+                    SELECT
+                        percentile_cont(0.95)
+                        WITHIN GROUP (
+                            ORDER BY latency_ms
+                        ) AS p95_latency_ms
+                    FROM dealer_quotes
+                    """
+                )
+
+                latency = cursor.fetchone()
+
+                cursor.execute(
+                    """
+                    SELECT
+                        q.dealer,
+
+                        count(*) AS quote_count,
+
+                        count(*) FILTER (
+                            WHERE q.quote_status =
+                                'EXECUTED'
+                        ) AS execution_count,
+
+                        COALESCE(
+                            avg(q.latency_ms),
+                            0
+                        ) AS average_latency_ms,
+
+                        COALESCE(
+                            avg(q.spread_bps),
+                            0
+                        ) AS average_spread_bps,
+
+                        COALESCE(
+                            avg(q.price),
+                            0
+                        ) AS average_price
+
+                    FROM dealer_quotes q
+
+                    GROUP BY q.dealer
+
+                    ORDER BY
+                        execution_count DESC,
+                        quote_count DESC,
+                        q.dealer
+                    """
+                )
+
+                dealers = cursor.fetchall()
+
+        if summary is None:
+            raise RuntimeError(
+                "RFQ analytics query returned no row"
+            )
+
+        summary["p95_dealer_latency_ms"] = (
+            float(latency["p95_latency_ms"])
+            if latency
+            and latency["p95_latency_ms"]
+            is not None
+            else 0.0
+        )
+
+        return summary, dealers

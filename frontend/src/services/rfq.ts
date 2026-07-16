@@ -55,3 +55,14 @@ export async function executeRfqQuote(
 
   return response.data;
 }
+
+export async function fetchRfqAnalytics():
+Promise<
+  import("../types/bond").RfqAnalyticsSummary
+> {
+  const response = await rfqApi.get<
+    import("../types/bond").RfqAnalyticsSummary
+  >("/analytics/summary");
+
+  return response.data;
+}

@@ -162,3 +162,30 @@ class LiveAccountRisk(BaseModel):
     net_liquidation_value: float
 
     positions: list[LivePositionRisk]
+
+
+class DealerAnalytics(BaseModel):
+    dealer: str
+    quote_count: int
+    execution_count: int
+    hit_ratio: float
+    average_latency_ms: float
+    average_spread_bps: float
+    average_price: float
+
+
+class RfqAnalyticsSummary(BaseModel):
+    rfq_count: int
+    quoted_rfq_count: int
+    executed_rfq_count: int
+    execution_rate: float
+
+    average_quotes_per_rfq: float
+    average_dealer_latency_ms: float
+    p95_dealer_latency_ms: float
+    average_execution_latency_ms: float
+
+    total_notional: float
+    executed_notional: float
+
+    dealers: list[DealerAnalytics]
