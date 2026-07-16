@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import LatestBondPrice, MarketSummary, PriceHistoryPoint
+from .models import LatestBondPrice, MarketSummary, PriceHistoryPoint, PriceHistoryPoint
 from .repository import MarketRepository
 
 
