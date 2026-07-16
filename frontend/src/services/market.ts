@@ -54,3 +54,17 @@ export async function fetchPriceHistory(
 
   return response.data;
 }
+
+export async function runScenario(
+  request: import("../types/bond").ScenarioRequest,
+): Promise<import("../types/bond").ScenarioResponse> {
+  const response =
+    await marketApi.post<
+      import("../types/bond").ScenarioResponse
+    >(
+      "/scenarios/run",
+      request,
+    );
+
+  return response.data;
+}

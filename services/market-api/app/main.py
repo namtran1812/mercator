@@ -3,8 +3,15 @@ from __future__ import annotations
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import LatestBondPrice, MarketSummary, PriceHistoryPoint, PriceHistoryPoint
+from .models import (
+    LatestBondPrice,
+    MarketSummary,
+    PriceHistoryPoint,
+    ScenarioRequest,
+    ScenarioResponse,
+), PriceHistoryPoint
 from .repository import MarketRepository
+from .scenario import calculate_scenario
 
 
 app = FastAPI(
@@ -79,4 +86,21 @@ def price_history(
     return repository.price_history(
         instrument_id=instrument_id,
         limit=limit,
+    )
+
+
+@app.post(
+    "/scenarios/run",
+    response_model=ScenarioResponse,
+)
+def run_scenario(
+    request: ScenarioRequest,
+) -> ScenarioResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_scenario(
+        prices,
+        request,
     )

@@ -201,3 +201,55 @@ class MarketRepository:
             )
             for row in result.result_rows
         ]
+
+    def latest_prices_by_ids(
+        self,
+        instrument_ids: list[int],
+    ) -> list[LatestBondPrice]:
+        if not instrument_ids:
+            return []
+
+        result = self._client.query(
+            """
+            SELECT
+                instrument_id,
+                argMax(clean_price, event_time),
+                argMax(dirty_price, event_time),
+                argMax(yield_to_maturity, event_time),
+                argMax(g_spread_bps, event_time),
+                argMax(modified_duration, event_time),
+                argMax(convexity, event_time),
+                argMax(quality_score, event_time),
+                argMax(quality_status, event_time),
+                argMax(curve_version, event_time),
+                argMax(reference_version, event_time),
+                max(event_time)
+            FROM evaluated_prices
+            WHERE instrument_id IN
+                {instrument_ids:Array(UInt64)}
+            GROUP BY instrument_id
+            ORDER BY instrument_id
+            """,
+            parameters={
+                "instrument_ids": instrument_ids,
+            },
+        )
+
+        return [
+            LatestBondPrice(
+                instrument_id=row[0],
+                clean_price=row[1],
+                dirty_price=row[2],
+                yield_to_maturity=row[3],
+                g_spread_bps=row[4],
+                modified_duration=row[5],
+                convexity=row[6],
+                quality_score=row[7],
+                quality_status=row[8],
+                curve_version=row[9],
+                reference_version=row[10],
+                event_time=row[11],
+            )
+            for row in result.result_rows
+        ]
+

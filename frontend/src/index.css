@@ -321,3 +321,106 @@ h2 {
 .muted-text {
   color: #77858f;
 }
+
+.scenario-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.scenario-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.scenario-inputs label {
+  position: relative;
+  display: block;
+  color: #7f8c97;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.scenario-inputs input {
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid #27323a;
+  border-radius: 3px;
+  padding: 10px 42px 10px 10px;
+  color: #e0e8ed;
+  background: #090d10;
+}
+
+.scenario-inputs label span {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  color: #64717b;
+}
+
+.scenario-panel button {
+  border: 1px solid #47e6a1;
+  border-radius: 3px;
+  padding: 10px 16px;
+  color: #08110d;
+  background: #47e6a1;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.scenario-panel button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.scenario-results {
+  margin-top: 18px;
+  border-top: 1px solid #222c34;
+  padding-top: 16px;
+}
+
+.scenario-total {
+  border: 1px solid #263039;
+  padding: 14px;
+  background: #0d1216;
+}
+
+.scenario-total span,
+.scenario-total small {
+  display: block;
+  color: #7f8c97;
+}
+
+.scenario-total strong {
+  display: block;
+  margin: 7px 0;
+  font-size: 24px;
+}
+
+.scenario-ranking {
+  margin-top: 10px;
+}
+
+.scenario-ranking div {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr;
+  gap: 12px;
+  border-bottom: 1px solid #1e272e;
+  padding: 9px 4px;
+  color: #aab5bd;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+.positive-value {
+  color: #47e6a1;
+}
+
+.negative-value {
+  color: #ff8585;
+}
