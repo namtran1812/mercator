@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import LatestBondPrice, MarketSummary
+from .models import LatestBondPrice, MarketSummary, PriceHistoryPoint
 from .repository import MarketRepository
 
 
@@ -62,3 +62,21 @@ def latest_prices(
 )
 def market_summary() -> MarketSummary:
     return repository.market_summary()
+
+
+@app.get(
+    "/prices/{instrument_id}/history",
+    response_model=list[PriceHistoryPoint],
+)
+def price_history(
+    instrument_id: int,
+    limit: int = Query(
+        default=100,
+        ge=1,
+        le=5_000,
+    ),
+) -> list[PriceHistoryPoint]:
+    return repository.price_history(
+        instrument_id=instrument_id,
+        limit=limit,
+    )

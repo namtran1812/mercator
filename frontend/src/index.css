@@ -226,3 +226,98 @@ h2 {
   margin-top: 12px;
   color: #ff8585;
 }
+
+.details-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.empty-panel {
+  color: #7f8c97;
+  font-size: 13px;
+}
+
+.details-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.details-metrics article {
+  border: 1px solid #222c34;
+  padding: 12px;
+  background: #0d1216;
+}
+
+.details-metrics span {
+  display: block;
+  color: #7f8c97;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.details-metrics strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+}
+
+.chart-card {
+  margin-top: 12px;
+  border: 1px solid #222c34;
+  padding: 12px;
+  background: #0b1014;
+}
+
+.chart-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: #aab4bd;
+  font-size: 12px;
+}
+
+.chart-heading small {
+  color: #6f7d87;
+}
+
+.provenance-card {
+  margin-top: 14px;
+  border: 1px solid #222c34;
+  padding: 14px;
+  background: #0b1014;
+}
+
+.provenance-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 0;
+}
+
+.provenance-card dl div {
+  min-width: 0;
+}
+
+.provenance-card dt {
+  color: #71808a;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.provenance-card dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  color: #c5ced5;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.muted-text {
+  color: #77858f;
+}

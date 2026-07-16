@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AgentPanel } from "../components/AgentPanel/AgentPanel";
 import { BondGrid } from "../components/BondGrid/BondGrid";
+import { BondDetails } from "../components/BondDetails/BondDetails";
 import { MarketSummary } from "../components/MarketSummary/MarketSummary";
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
@@ -104,6 +105,7 @@ export function Dashboard() {
           )}
 
           <BondGrid />
+          <BondDetails />
         </div>
 
         <AgentPanel />

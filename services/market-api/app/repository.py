@@ -9,7 +9,7 @@ from .config import (
     CLICKHOUSE_PORT,
     CLICKHOUSE_USERNAME,
 )
-from .models import LatestBondPrice, MarketSummary
+from .models import LatestBondPrice, MarketSummary, PriceHistoryPoint
 
 
 class MarketRepository:
@@ -146,3 +146,58 @@ class MarketRepository:
             widest_instrument_id=row[4],
             widest_g_spread_bps=row[5],
         )
+
+    def price_history(
+        self,
+        *,
+        instrument_id: int,
+        limit: int,
+    ) -> list[PriceHistoryPoint]:
+        result = self._client.query(
+            """
+            SELECT
+                event_time,
+                clean_price,
+                dirty_price,
+                yield_to_maturity,
+                g_spread_bps,
+                modified_duration,
+                convexity,
+                quality_score,
+                quality_status,
+                curve_version,
+                reference_version,
+                model_version,
+                toString(calculation_trace_id),
+                toString(source_event_id)
+            FROM evaluated_prices
+            WHERE instrument_id =
+                {instrument_id:UInt64}
+            ORDER BY event_time DESC
+            LIMIT {limit:UInt32}
+            """,
+            parameters={
+                "instrument_id": instrument_id,
+                "limit": limit,
+            },
+        )
+
+        return [
+            PriceHistoryPoint(
+                event_time=row[0],
+                clean_price=row[1],
+                dirty_price=row[2],
+                yield_to_maturity=row[3],
+                g_spread_bps=row[4],
+                modified_duration=row[5],
+                convexity=row[6],
+                quality_score=row[7],
+                quality_status=row[8],
+                curve_version=row[9],
+                reference_version=row[10],
+                model_version=row[11],
+                calculation_trace_id=row[12],
+                source_event_id=row[13],
+            )
+            for row in result.result_rows
+        ]

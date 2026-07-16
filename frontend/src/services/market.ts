@@ -1,5 +1,8 @@
 import { marketApi } from "./api";
-import type { BondPrice } from "../types/bond";
+import type {
+  BondPrice,
+  PriceHistoryPoint,
+} from "../types/bond";
 
 export interface MarketSummary {
   instrument_count: number;
@@ -32,6 +35,22 @@ Promise<MarketSummary> {
     await marketApi.get<MarketSummary>(
       "/market/summary",
     );
+
+  return response.data;
+}
+
+export async function fetchPriceHistory(
+  instrumentId: number,
+  limit = 100,
+): Promise<PriceHistoryPoint[]> {
+  const response = await marketApi.get<PriceHistoryPoint[]>(
+    `/prices/${instrumentId}/history`,
+    {
+      params: {
+        limit,
+      },
+    },
+  );
 
   return response.data;
 }

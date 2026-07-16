@@ -7,21 +7,34 @@ from pydantic import BaseModel
 
 class LatestBondPrice(BaseModel):
     instrument_id: int
-
     clean_price: float
     dirty_price: float
     yield_to_maturity: float
     g_spread_bps: float
     modified_duration: float
     convexity: float
-
     quality_score: float
     quality_status: str
-
     curve_version: int
     reference_version: int
-
     event_time: datetime
+
+
+class PriceHistoryPoint(BaseModel):
+    event_time: datetime
+    clean_price: float
+    dirty_price: float
+    yield_to_maturity: float
+    g_spread_bps: float
+    modified_duration: float
+    convexity: float
+    quality_score: float
+    quality_status: str
+    curve_version: int
+    reference_version: int
+    model_version: str
+    calculation_trace_id: str
+    source_event_id: str
 
 
 class MarketSummary(BaseModel):
