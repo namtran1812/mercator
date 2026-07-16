@@ -144,3 +144,88 @@ def list_versions(
         InstrumentVersion.model_validate(row)
         for row in rows
     ]
+
+
+def get_active_reference_observations(
+    connection: Connection,
+    instrument_id: int,
+    field_name: str,
+) -> list[dict]:
+    query = """
+        SELECT
+            observation_id,
+            instrument_id,
+            field_name,
+            field_value,
+            source_name,
+            source_priority,
+            trust_score,
+            valid_from,
+            valid_to
+        FROM reference_observations
+        JOIN reference_sources USING (source_name)
+        WHERE instrument_id = %s
+          AND field_name = %s
+          AND enabled = TRUE
+          AND valid_from <= now()
+          AND (valid_to IS NULL OR valid_to > now())
+        ORDER BY source_priority ASC, recorded_at DESC
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            query,
+            (
+                instrument_id,
+                field_name,
+            ),
+        )
+        return cursor.fetchall()
+
+
+def persist_reconciliation(
+    connection: Connection,
+    result,
+) -> None:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE reconciled_reference_values
+            SET recorded_to = now()
+            WHERE instrument_id = %s
+              AND field_name = %s
+              AND recorded_to IS NULL
+            """,
+            (
+                result.instrument_id,
+                result.field_name,
+            ),
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO reconciled_reference_values (
+                instrument_id,
+                field_name,
+                selected_value,
+                selected_source,
+                confidence_score,
+                contributing_observations,
+                valid_from,
+                valid_to
+            )
+            VALUES (
+                %s, %s, %s, %s, %s, %s, now(), NULL
+            )
+            """,
+            (
+                result.instrument_id,
+                result.field_name,
+                result.selected_value,
+                result.selected_source,
+                result.confidence_score,
+                result.contributing_observations,
+            ),
+        )
+
+    connection.commit()

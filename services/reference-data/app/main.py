@@ -7,11 +7,18 @@ from psycopg import Connection
 
 from .database import connection_dependency
 from .models import InstrumentSearchResult, InstrumentVersion
+from .reconciliation import reconcile_observations
+from .reconciliation_models import (
+    ReconciliationResult,
+    ReferenceObservation,
+)
 from .repository import (
     get_current_instrument,
     get_instrument_as_of,
     list_versions,
     search_instruments,
+    get_active_reference_observations,
+    persist_reconciliation,
 )
 
 app = FastAPI(
@@ -115,3 +122,35 @@ def versions(
         )
 
     return results
+
+
+@app.post(
+    "/instruments/{instrument_id}/reconcile/{field_name}",
+    response_model=ReconciliationResult,
+)
+def reconcile_field(
+    instrument_id: int,
+    field_name: str,
+    connection: Connection = Depends(connection_dependency),
+) -> ReconciliationResult:
+    rows = get_active_reference_observations(
+        connection=connection,
+        instrument_id=instrument_id,
+        field_name=field_name,
+    )
+
+    if not rows:
+        raise HTTPException(
+            status_code=404,
+            detail="No active observations found",
+        )
+
+    observations = [
+        ReferenceObservation.model_validate(row)
+        for row in rows
+    ]
+
+    result = reconcile_observations(observations)
+    persist_reconciliation(connection, result)
+
+    return result
