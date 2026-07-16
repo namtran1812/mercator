@@ -97,8 +97,11 @@ std::vector<EvaluatedPrice> RepricingService::reprice(
             .convexity = analytics.convexity,
             .curve_version = updated_curve.version(),
             .reference_version = instrument.reference_version,
-            .quality_score = 1.0,
-            .quality_status = "VALID",
+            .quality_score = instrument.market_confidence,
+            .quality_status =
+                instrument.market_confidence >= 0.80
+                    ? "VALID"
+                    : "LOW_CONFIDENCE",
             .model_version = "mercator-pricer-0.1.0",
             .calculation_trace_id =
                 make_trace_id(event.event_id, instrument_id),

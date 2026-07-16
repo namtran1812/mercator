@@ -255,3 +255,30 @@ add_test(
     NAME mercator-clean-price-tests
     COMMAND mercator-clean-price-tests
 )
+
+add_executable(
+    mercator-quote-reconciliation-tests
+    tests/quote_reconciliation_test.cpp
+    src/quote_reconciliation.cpp
+)
+
+target_include_directories(
+    mercator-quote-reconciliation-tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-quote-reconciliation-tests
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-quote-reconciliation-tests
+    COMMAND mercator-quote-reconciliation-tests
+)

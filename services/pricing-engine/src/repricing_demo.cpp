@@ -134,6 +134,7 @@ int main() {
                 .instrument_id = instrument_id,
                 .schedule = std::move(schedule),
                 .spread_bps = spread_distribution(generator),
+                .market_confidence = 0.95,
                 .reference_version = 1,
             }
         );

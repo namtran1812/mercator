@@ -16,6 +16,7 @@ struct PricingInstrument {
     InstrumentId instrument_id;
     CouponSchedule schedule;
     double spread_bps;
+    double market_confidence;
     std::uint64_t reference_version;
 };
 
