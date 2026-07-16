@@ -85,3 +85,14 @@ export async function fetchPortfolioRisk(
 
   return response.data;
 }
+
+export async function fetchReplayScenarios():
+Promise<
+  import("../types/bond").ReplayScenario[]
+> {
+  const response = await marketApi.get<
+    import("../types/bond").ReplayScenario[]
+  >("/replay/scenarios");
+
+  return response.data;
+}

@@ -9,7 +9,13 @@ from .config import (
     CLICKHOUSE_PORT,
     CLICKHOUSE_USERNAME,
 )
-from .models import LatestBondPrice, MarketSummary, PriceHistoryPoint
+from .models import (
+    LatestBondPrice,
+    MarketSummary,
+    PriceHistoryPoint,
+    ReplayScenario,
+    ReplayScenario,
+)
 
 
 class MarketRepository:
@@ -249,6 +255,32 @@ class MarketRepository:
                 curve_version=row[9],
                 reference_version=row[10],
                 event_time=row[11],
+            )
+            for row in result.result_rows
+        ]
+
+    def replay_scenarios(
+        self,
+    ) -> list[ReplayScenario]:
+        result = self._client.query(
+            """
+            SELECT
+                scenario_name,
+                count(),
+                min(event_time),
+                max(event_time)
+            FROM curve_events
+            GROUP BY scenario_name
+            ORDER BY max(event_time) DESC
+            """
+        )
+
+        return [
+            ReplayScenario(
+                scenario_name=row[0],
+                event_count=row[1],
+                first_event_time=row[2],
+                last_event_time=row[3],
             )
             for row in result.result_rows
         ]

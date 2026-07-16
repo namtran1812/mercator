@@ -8,6 +8,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 
+import clickhouse_connect
 from confluent_kafka import Producer
 
 TOPIC = "market.curves.v1"
@@ -37,6 +38,25 @@ BASE_RATES = {
 }
 
 
+def create_clickhouse_client():
+    return clickhouse_connect.get_client(
+        host=os.getenv("CLICKHOUSE_HOST", "localhost"),
+        port=int(os.getenv("CLICKHOUSE_PORT", "8123")),
+        username=os.getenv(
+            "CLICKHOUSE_USERNAME",
+            "mercator",
+        ),
+        password=os.getenv(
+            "CLICKHOUSE_PASSWORD",
+            "mercator",
+        ),
+        database=os.getenv(
+            "CLICKHOUSE_DATABASE",
+            "mercator",
+        ),
+    )
+
+
 def delivery_report(error, message) -> None:
     if error is not None:
         print(f"Delivery failed: {error}")
@@ -63,6 +83,11 @@ def main() -> None:
         default=2.0,
     )
 
+    parser.add_argument(
+        "--scenario-name",
+        default="live-simulation",
+    )
+
     arguments = parser.parse_args()
 
     producer = Producer(
@@ -71,9 +96,12 @@ def main() -> None:
                 "KAFKA_BOOTSTRAP_SERVERS",
                 "localhost:9092",
             ),
-            "client.id": "mercator-curve-simulator",
+            "client.id":
+                "mercator-curve-simulator",
         }
     )
+
+    clickhouse = create_clickhouse_client()
 
     random.seed(42)
 
@@ -84,7 +112,6 @@ def main() -> None:
 
     while True:
         tenor = random.choice(TENORS)
-
         old_rate = rates[tenor]
 
         shock_bps = random.gauss(
@@ -100,11 +127,12 @@ def main() -> None:
         curve_version += 1
         rates[tenor] = new_rate
 
+        event_id = str(uuid.uuid4())
+        event_time = datetime.now(timezone.utc)
+
         event = {
-            "event_id": str(uuid.uuid4()),
-            "event_time": datetime.now(
-                timezone.utc
-            ).isoformat(),
+            "event_id": event_id,
+            "event_time": event_time.isoformat(),
             "curve_version": curve_version,
             "tenor": tenor,
             "old_rate": old_rate,
@@ -121,9 +149,37 @@ def main() -> None:
         producer.poll(0)
         producer.flush(5)
 
+        clickhouse.insert(
+            "curve_events",
+            [
+                [
+                    event_time,
+                    event_id,
+                    curve_version,
+                    "UST",
+                    tenor,
+                    old_rate,
+                    new_rate,
+                    "curve-simulator",
+                    arguments.scenario_name,
+                ]
+            ],
+            column_names=[
+                "event_time",
+                "event_id",
+                "curve_version",
+                "curve_name",
+                "tenor",
+                "old_rate",
+                "new_rate",
+                "source",
+                "scenario_name",
+            ],
+        )
+
         print(
             f"{tenor}: "
-            f"{old_rate * 100:.4f}% → "
+            f"{old_rate * 100:.4f}% -> "
             f"{new_rate * 100:.4f}%"
         )
 

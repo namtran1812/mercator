@@ -149,3 +149,35 @@ class PortfolioRiskResponse(BaseModel):
     total_convexity_contribution: float
 
     positions: list[PositionRisk]
+
+
+class ReplayScenario(BaseModel):
+    scenario_name: str
+    event_count: int
+    first_event_time: datetime
+    last_event_time: datetime
+
+
+class ReplayRequest(BaseModel):
+    scenario_name: str
+    speed: float = Field(
+        default=10.0,
+        gt=0.0,
+        le=1_000.0,
+    )
+
+
+class ReplayScenario(BaseModel):
+    scenario_name: str
+    event_count: int
+    first_event_time: datetime
+    last_event_time: datetime
+
+
+class ReplayRequest(BaseModel):
+    scenario_name: str
+    speed: float = Field(
+        default=10.0,
+        gt=0.0,
+        le=1_000.0,
+    )

@@ -9,6 +9,8 @@ from .models import (
     PriceHistoryPoint,
     PortfolioRiskRequest,
     PortfolioRiskResponse,
+    ReplayScenario,
+    ReplayScenario,
     ScenarioRequest,
     ScenarioResponse,
 )
@@ -129,3 +131,19 @@ def portfolio_risk(
         prices,
         request,
     )
+
+
+@app.get(
+    "/replay/scenarios",
+    response_model=list[ReplayScenario],
+)
+def replay_scenarios() -> list[ReplayScenario]:
+    return repository.replay_scenarios()
+
+
+@app.get(
+    "/replay/scenarios",
+    response_model=list[ReplayScenario],
+)
+def replay_scenarios() -> list[ReplayScenario]:
+    return repository.replay_scenarios()

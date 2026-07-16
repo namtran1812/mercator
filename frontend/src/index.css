@@ -503,3 +503,46 @@ h2 {
     Menlo, monospace;
   font-size: 12px;
 }
+
+.replay-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.replay-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.replay-list article {
+  border: 1px solid #263039;
+  padding: 14px;
+  background: #0d1216;
+}
+
+.replay-list article div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.replay-list span,
+.replay-list small {
+  color: #7f8c97;
+}
+
+.replay-list small {
+  display: block;
+  margin-top: 7px;
+}
+
+.replay-list code {
+  display: block;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+  color: #80dcb1;
+  font-size: 11px;
+}

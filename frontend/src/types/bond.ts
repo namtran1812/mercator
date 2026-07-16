@@ -100,3 +100,10 @@ export interface PortfolioRiskResponse {
   total_convexity_contribution: number;
   positions: PositionRisk[];
 }
+
+export interface ReplayScenario {
+  scenario_name: string;
+  event_count: number;
+  first_event_time: string;
+  last_event_time: string;
+}
