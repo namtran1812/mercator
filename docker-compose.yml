@@ -2,6 +2,7 @@ services:
   kafka:
     image: apache/kafka:3.9.1
     container_name: mercator-kafka
+    restart: unless-stopped
     ports:
       - "9092:9092"
     environment:
@@ -16,6 +17,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - mercator_kafka:/var/lib/kafka/data
     healthcheck:
       test:
         [
@@ -24,11 +27,12 @@ services:
         ]
       interval: 10s
       timeout: 10s
-      retries: 15
+      retries: 20
 
   postgres:
     image: postgres:17
     container_name: mercator-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: mercator
       POSTGRES_PASSWORD: mercator
@@ -41,11 +45,12 @@ services:
       test: ["CMD-SHELL", "pg_isready -U mercator -d mercator"]
       interval: 5s
       timeout: 5s
-      retries: 15
+      retries: 20
 
   clickhouse:
     image: clickhouse/clickhouse-server:25.3
     container_name: mercator-clickhouse
+    restart: unless-stopped
     ports:
       - "8123:8123"
       - "9000:9000"
@@ -64,19 +69,25 @@ services:
         ]
       interval: 5s
       timeout: 5s
-      retries: 15
+      retries: 20
 
   redis:
     image: redis:7-alpine
     container_name: mercator-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - mercator_redis:/data
+    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 15
+      retries: 20
 
 volumes:
+  mercator_kafka:
   mercator_postgres:
   mercator_clickhouse:
+  mercator_redis:

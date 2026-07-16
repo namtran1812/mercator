@@ -37,3 +37,8 @@ vendor/
 data/
 artifacts/
 coverage/
+
+# Generated semantic search index
+artifacts/search-index/*.faiss
+artifacts/search-index/*.json
+!artifacts/search-index/.gitkeep
