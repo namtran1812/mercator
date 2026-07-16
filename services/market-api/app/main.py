@@ -9,7 +9,7 @@ from .models import (
     PriceHistoryPoint,
     ScenarioRequest,
     ScenarioResponse,
-), PriceHistoryPoint
+)
 from .repository import MarketRepository
 from .scenario import calculate_scenario
 

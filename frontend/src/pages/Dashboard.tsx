@@ -7,8 +7,10 @@ import { MarketSummary } from "../components/MarketSummary/MarketSummary";
 import { ScenarioPanel } from "../components/ScenarioPanel/ScenarioPanel";
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
+import { usePriceStream } from "../hooks/usePriceStream";
 
 export function Dashboard() {
+  usePriceStream();
   const setBonds = useMarketStore(
     (state) => state.setBonds,
   );
