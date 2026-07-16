@@ -148,3 +148,73 @@ export interface LiveAccountRisk {
   net_liquidation_value: number;
   positions: LivePositionRisk[];
 }
+
+export type RfqSide = "BUY" | "SELL";
+
+export interface RfqRequest {
+  account_id: string;
+  instrument_id: number;
+  side: RfqSide;
+  quantity: number;
+  client: string;
+}
+
+export interface Rfq {
+  id: string;
+  account_id: string;
+  instrument_id: number;
+  side: RfqSide;
+  quantity: number;
+  client: string;
+  requested_at: string;
+  status:
+    | "REQUESTED"
+    | "QUOTING"
+    | "QUOTED"
+    | "EXECUTED"
+    | "CANCELLED"
+    | "EXPIRED";
+}
+
+export interface DealerQuote {
+  id: string;
+  rfq_id: string;
+  dealer: string;
+  price: number;
+  spread_bps: number;
+  latency_ms: number;
+  inventory_adjustment_bps: number;
+  size_adjustment_bps: number;
+  quoted_at: string;
+  expires_at: string | null;
+  quote_status:
+    | "ACTIVE"
+    | "EXECUTED"
+    | "REJECTED"
+    | "EXPIRED";
+}
+
+export interface RfqDetail {
+  rfq: Rfq;
+  quotes: DealerQuote[];
+}
+
+export interface Execution {
+  id: string;
+  rfq_id: string;
+  quote_id: string;
+  account_id: string;
+  instrument_id: number;
+  side: RfqSide;
+  client: string;
+  dealer: string;
+  price: number;
+  quantity: number;
+  executed_at: string;
+  execution_status: string;
+}
+
+export interface ExecutionResponse {
+  execution: Execution;
+  rejected_quote_count: number;
+}

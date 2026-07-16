@@ -619,3 +619,135 @@ h2 {
     monospace;
   font-size: 12px;
 }
+
+.rfq-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.rfq-form {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  margin: 16px 0 10px;
+}
+
+.rfq-form label {
+  color: #7f8c97;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rfq-form select,
+.rfq-form input {
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid #27323a;
+  border-radius: 3px;
+  padding: 10px;
+  color: #e0e8ed;
+  background: #090d10;
+}
+
+.rfq-panel > button,
+.rfq-session > button {
+  border: 1px solid #47e6a1;
+  border-radius: 3px;
+  padding: 10px 16px;
+  color: #08110d;
+  background: #47e6a1;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.rfq-panel button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.rfq-session {
+  margin-top: 16px;
+  border-top: 1px solid #222c34;
+  padding-top: 16px;
+}
+
+.rfq-session-header {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rfq-session-header span {
+  display: block;
+  color: #7f8c97;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.rfq-session-header strong,
+.rfq-session-header code {
+  display: block;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+
+.dealer-quote-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.dealer-quote-list article {
+  display: grid;
+  grid-template-columns:
+    1.6fr 1fr 1fr 90px 100px;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #263039;
+  padding: 12px;
+  background: #0d1216;
+}
+
+.dealer-quote-list article > div span {
+  display: block;
+  color: #73808a;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.dealer-quote-list article > div strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.best-dealer-quote {
+  border-color: #47e6a1 !important;
+  background:
+    rgba(
+      71,
+      230,
+      161,
+      0.06
+    ) !important;
+}
+
+.best-badge {
+  display: inline-block !important;
+  width: fit-content;
+  margin-top: 5px;
+  border: 1px solid #47e6a1;
+  border-radius: 2px;
+  padding: 2px 5px;
+  color: #47e6a1 !important;
+  font-size: 9px !important;
+}
+
+.execution-success {
+  margin-top: 12px;
+  color: #47e6a1;
+}
