@@ -10,6 +10,7 @@ import { ReplayPanel } from "../components/ReplayPanel/ReplayPanel";
 import { LivePnlPanel } from "../components/LivePnlPanel/LivePnlPanel";
 import { RfqPanel } from "../components/RfqPanel/RfqPanel";
 import { RfqAnalyticsPanel } from "../components/RfqAnalyticsPanel/RfqAnalyticsPanel";
+import { RelativeValuePanel } from "../components/RelativeValuePanel/RelativeValuePanel";
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
 import { usePriceStream } from "../hooks/usePriceStream";
@@ -129,6 +130,7 @@ export function Dashboard() {
           <ScenarioPanel />
           <RfqPanel />
           <RfqAnalyticsPanel />
+          <RelativeValuePanel />
           <PortfolioPanel />
           <LivePnlPanel />
           <ReplayPanel />

@@ -934,3 +934,57 @@ h2 {
     monospace;
   font-size: 12px;
 }
+
+.relative-value-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.relative-value-metrics {
+  display: grid;
+  grid-template-columns:
+    repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.relative-value-metrics article {
+  border: 1px solid #263039;
+  padding: 12px;
+  background: #0d1216;
+}
+
+.relative-value-metrics span {
+  display: block;
+  color: #7f8c97;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.relative-value-metrics strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.relative-value-list {
+  margin-top: 12px;
+}
+
+.relative-value-list div {
+  display: grid;
+  grid-template-columns:
+    70px 80px 100px 110px 80px 90px;
+  gap: 12px;
+  border-bottom:
+    1px solid #1e272e;
+  padding: 9px 4px;
+  color: #aab5bd;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  font-size: 12px;
+}

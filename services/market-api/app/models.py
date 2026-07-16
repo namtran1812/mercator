@@ -181,3 +181,52 @@ class ReplayRequest(BaseModel):
         gt=0.0,
         le=1_000.0,
     )
+
+
+class RelativeValueRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=2,
+        max_length=10_000,
+    )
+
+    duration_bucket_width: float = Field(
+        default=1.5,
+        gt=0.0,
+        le=10.0,
+    )
+
+    minimum_peer_count: int = Field(
+        default=3,
+        ge=2,
+        le=100,
+    )
+
+
+class RelativeValueOpportunity(BaseModel):
+    instrument_id: int
+
+    clean_price: float
+    yield_to_maturity: float
+    g_spread_bps: float
+    modified_duration: float
+
+    peer_count: int
+    peer_average_spread_bps: float
+    peer_spread_standard_deviation_bps: float
+
+    spread_difference_bps: float
+    spread_z_score: float
+    duration_adjusted_spread: float
+
+    classification: str
+    conviction_score: float
+
+
+class RelativeValueResponse(BaseModel):
+    instrument_count: int
+    opportunity_count: int
+
+    average_spread_bps: float
+    average_duration: float
+
+    opportunities: list[RelativeValueOpportunity]

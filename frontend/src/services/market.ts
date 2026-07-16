@@ -96,3 +96,22 @@ Promise<
 
   return response.data;
 }
+
+export async function fetchRelativeValue(
+  instrumentIds: number[],
+): Promise<
+  import("../types/bond").RelativeValueResponse
+> {
+  const response = await marketApi.post<
+    import("../types/bond").RelativeValueResponse
+  >(
+    "/relative-value/rank",
+    {
+      instrument_ids: instrumentIds,
+      duration_bucket_width: 1.5,
+      minimum_peer_count: 3,
+    },
+  );
+
+  return response.data;
+}

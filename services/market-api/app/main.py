@@ -10,13 +10,18 @@ from .models import (
     PortfolioRiskRequest,
     PortfolioRiskResponse,
     ReplayScenario,
+    RelativeValueRequest,
+    RelativeValueResponse,
     ReplayScenario,
+    RelativeValueRequest,
+    RelativeValueResponse,
     ScenarioRequest,
     ScenarioResponse,
 )
 from .repository import MarketRepository
 from .portfolio import calculate_portfolio_risk
 from .scenario import calculate_scenario
+from .relative_value import calculate_relative_value
 
 
 app = FastAPI(
@@ -147,3 +152,20 @@ def replay_scenarios() -> list[ReplayScenario]:
 )
 def replay_scenarios() -> list[ReplayScenario]:
     return repository.replay_scenarios()
+
+
+@app.post(
+    "/relative-value/rank",
+    response_model=RelativeValueResponse,
+)
+def rank_relative_value(
+    request: RelativeValueRequest,
+) -> RelativeValueResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_relative_value(
+        prices=prices,
+        request=request,
+    )

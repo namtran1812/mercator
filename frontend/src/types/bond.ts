@@ -242,3 +242,27 @@ export interface RfqAnalyticsSummary {
   executed_notional: number;
   dealers: DealerAnalytics[];
 }
+
+export interface RelativeValueOpportunity {
+  instrument_id: number;
+  clean_price: number;
+  yield_to_maturity: number;
+  g_spread_bps: number;
+  modified_duration: number;
+  peer_count: number;
+  peer_average_spread_bps: number;
+  peer_spread_standard_deviation_bps: number;
+  spread_difference_bps: number;
+  spread_z_score: number;
+  duration_adjusted_spread: number;
+  classification: "CHEAP" | "RICH" | "FAIR";
+  conviction_score: number;
+}
+
+export interface RelativeValueResponse {
+  instrument_count: number;
+  opportunity_count: number;
+  average_spread_bps: number;
+  average_duration: number;
+  opportunities: RelativeValueOpportunity[];
+}
