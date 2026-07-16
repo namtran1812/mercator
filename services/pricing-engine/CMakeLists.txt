@@ -147,3 +147,28 @@ target_compile_options(
     -Wextra
     -Wpedantic
 )
+
+add_executable(
+    mercator-selective-repricing-benchmark
+    benchmarks/selective_repricing.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+    src/yield_curve.cpp
+    src/dependency_graph.cpp
+    src/dependency_resolver.cpp
+)
+
+target_include_directories(
+    mercator-selective-repricing-benchmark
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-selective-repricing-benchmark
+    PRIVATE
+    -O3
+    -Wall
+    -Wextra
+    -Wpedantic
+)
