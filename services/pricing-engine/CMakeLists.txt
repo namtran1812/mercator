@@ -9,6 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(
     mercator-pricing-engine
     src/main.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
 )
 
 target_include_directories(
@@ -25,4 +27,34 @@ target_compile_options(
     -Wpedantic
     -Wconversion
     -Wshadow
+)
+
+enable_testing()
+
+add_executable(
+    mercator-pricing-tests
+    tests/analytics_test.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+)
+
+target_include_directories(
+    mercator-pricing-tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-pricing-tests
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-pricing-tests
+    COMMAND mercator-pricing-tests
 )
