@@ -215,3 +215,44 @@ BondAnalytics calculate_bond_analytics(
 }
 
 }  // namespace mercator::pricing
+
+namespace mercator::pricing {
+
+double present_value_from_curve(
+    const std::vector<CashFlow>& cashflows,
+    const Date valuation_date,
+    const YieldCurve& curve,
+    const double spread_bps
+) {
+    const double spread =
+        spread_bps / 10'000.0;
+
+    double price = 0.0;
+
+    for (const auto& cashflow : cashflows) {
+        if (
+            std::chrono::sys_days{cashflow.payment_date} <=
+            std::chrono::sys_days{valuation_date}
+        ) {
+            continue;
+        }
+
+        const double years =
+            year_fraction_actual_365(
+                valuation_date,
+                cashflow.payment_date
+            );
+
+        const double rate =
+            curve.zero_rate(years) + spread;
+
+        const double discount_factor =
+            std::exp(-rate * years);
+
+        price += cashflow.amount * discount_factor;
+    }
+
+    return price;
+}
+
+}  // namespace mercator::pricing

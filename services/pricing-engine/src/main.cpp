@@ -1,75 +1,87 @@
 #include "mercator/pricing/analytics.hpp"
 #include "mercator/pricing/cashflow.hpp"
+#include "mercator/pricing/yield_curve.hpp"
 
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <vector>
 
 int main() {
     using namespace std::chrono;
     using namespace mercator::pricing;
 
-    const Date issue_date{
-        year{2026},
-        month{1},
-        day{15}
-    };
-
     const Date valuation_date{
         year{2026},
-        month{1},
+        month{7},
         day{15}
     };
 
     const Date maturity_date{
         year{2031},
-        month{1},
+        month{7},
         day{15}
     };
 
     const auto cashflows = generate_fixed_rate_cashflows(
         1000.0,
-        0.05,
+        0.055,
         2,
-        issue_date,
+        valuation_date,
         maturity_date
     );
 
-    const double market_price = 975.0;
+    const YieldCurve treasury_curve{
+        1,
+        valuation_date,
+        std::vector<CurvePoint>{
+            {0.25, 0.0430},
+            {0.50, 0.0420},
+            {1.00, 0.0410},
+            {2.00, 0.0400},
+            {3.00, 0.0410},
+            {5.00, 0.0430},
+            {7.00, 0.0450},
+            {10.00, 0.0460},
+            {30.00, 0.0470},
+        }
+    };
 
-    const BondAnalytics analytics =
-        calculate_bond_analytics(
+    const double treasury_price =
+        present_value_from_curve(
             cashflows,
             valuation_date,
-            market_price,
-            2
+            treasury_curve
+        );
+
+    const double credit_price =
+        present_value_from_curve(
+            cashflows,
+            valuation_date,
+            treasury_curve,
+            150.0
         );
 
     std::cout << std::fixed << std::setprecision(6);
 
     std::cout
-        << "Dirty price: "
-        << analytics.dirty_price
+        << "Curve version: "
+        << treasury_curve.version()
         << "\n";
 
     std::cout
-        << "Yield to maturity: "
-        << analytics.yield_to_maturity * 100.0
+        << "3.5Y interpolated zero rate: "
+        << treasury_curve.zero_rate(3.5) * 100.0
         << "%\n";
 
     std::cout
-        << "Macaulay duration: "
-        << analytics.macaulay_duration
+        << "Treasury-discounted price: "
+        << treasury_price
         << "\n";
 
     std::cout
-        << "Modified duration: "
-        << analytics.modified_duration
-        << "\n";
-
-    std::cout
-        << "Convexity: "
-        << analytics.convexity
+        << "Price with 150 bp credit spread: "
+        << credit_price
         << "\n";
 
     return 0;

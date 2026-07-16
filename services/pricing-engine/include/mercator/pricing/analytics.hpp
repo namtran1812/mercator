@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mercator/pricing/cashflow.hpp"
+#include "mercator/pricing/yield_curve.hpp"
 
 #include <vector>
 
@@ -17,6 +18,14 @@ struct BondAnalytics {
 double year_fraction_actual_365(
     Date start_date,
     Date end_date
+);
+
+
+double present_value_from_curve(
+    const std::vector<CashFlow>& cashflows,
+    Date valuation_date,
+    const YieldCurve& curve,
+    double spread_bps = 0.0
 );
 
 double present_value(

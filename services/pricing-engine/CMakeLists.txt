@@ -11,6 +11,7 @@ add_executable(
     src/main.cpp
     src/cashflow.cpp
     src/analytics.cpp
+    src/yield_curve.cpp
 )
 
 target_include_directories(
@@ -36,6 +37,7 @@ add_executable(
     tests/analytics_test.cpp
     src/cashflow.cpp
     src/analytics.cpp
+    src/yield_curve.cpp
 )
 
 target_include_directories(
@@ -57,4 +59,33 @@ target_compile_options(
 add_test(
     NAME mercator-pricing-tests
     COMMAND mercator-pricing-tests
+)
+
+add_executable(
+    mercator-yield-curve-tests
+    tests/yield_curve_test.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+    src/yield_curve.cpp
+)
+
+target_include_directories(
+    mercator-yield-curve-tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-yield-curve-tests
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-yield-curve-tests
+    COMMAND mercator-yield-curve-tests
 )
