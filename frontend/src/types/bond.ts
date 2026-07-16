@@ -107,3 +107,44 @@ export interface ReplayScenario {
   first_event_time: string;
   last_event_time: string;
 }
+
+export interface LivePositionRisk {
+  account_id: string;
+  instrument_id: number;
+  face_value: number;
+  average_cost: number;
+  current_clean_price: number;
+  cost_basis: number;
+  market_value: number;
+  unrealized_pnl: number;
+  realized_pnl: number;
+  total_pnl: number;
+  yield_to_maturity: number;
+  g_spread_bps: number;
+  modified_duration: number;
+  convexity: number;
+  dv01: number;
+  quality_status: string;
+  curve_version: number;
+  reference_version: number;
+}
+
+export interface LiveAccountRisk {
+  account_id: string;
+  account_name: string;
+  cash_balance: number;
+  position_count: number;
+  total_face_value: number;
+  total_cost_basis: number;
+  total_market_value: number;
+  total_unrealized_pnl: number;
+  total_realized_pnl: number;
+  total_pnl: number;
+  weighted_yield_to_maturity: number;
+  weighted_g_spread_bps: number;
+  weighted_modified_duration: number;
+  weighted_convexity: number;
+  total_dv01: number;
+  net_liquidation_value: number;
+  positions: LivePositionRisk[];
+}

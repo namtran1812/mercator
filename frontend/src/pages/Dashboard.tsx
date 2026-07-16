@@ -7,6 +7,7 @@ import { MarketSummary } from "../components/MarketSummary/MarketSummary";
 import { ScenarioPanel } from "../components/ScenarioPanel/ScenarioPanel";
 import { PortfolioPanel } from "../components/PortfolioPanel/PortfolioPanel";
 import { ReplayPanel } from "../components/ReplayPanel/ReplayPanel";
+import { LivePnlPanel } from "../components/LivePnlPanel/LivePnlPanel";
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
 import { usePriceStream } from "../hooks/usePriceStream";
@@ -125,6 +126,7 @@ export function Dashboard() {
           <BondGrid />
           <ScenarioPanel />
           <PortfolioPanel />
+          <LivePnlPanel />
           <ReplayPanel />
           <BondDetails />
         </div>

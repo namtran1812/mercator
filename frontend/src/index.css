@@ -546,3 +546,76 @@ h2 {
   color: #80dcb1;
   font-size: 11px;
 }
+
+.live-pnl-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.live-pnl-total {
+  margin-top: 16px;
+  border: 1px solid #263039;
+  padding: 16px;
+  background: #0d1216;
+}
+
+.live-pnl-total span,
+.live-pnl-total small {
+  display: block;
+  color: #7f8c97;
+}
+
+.live-pnl-total strong {
+  display: block;
+  margin: 8px 0 5px;
+  font-size: 28px;
+}
+
+.live-risk-metrics {
+  display: grid;
+  grid-template-columns:
+    repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.live-risk-metrics article {
+  border: 1px solid #263039;
+  padding: 12px;
+  background: #0d1216;
+}
+
+.live-risk-metrics span {
+  display: block;
+  color: #7f8c97;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.live-risk-metrics strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.live-position-list {
+  margin-top: 12px;
+}
+
+.live-position-list div {
+  display: grid;
+  grid-template-columns:
+    80px 1fr 100px 1fr;
+  gap: 10px;
+  border-bottom:
+    1px solid #1e272e;
+  padding: 9px 4px;
+  color: #aab5bd;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  font-size: 12px;
+}
