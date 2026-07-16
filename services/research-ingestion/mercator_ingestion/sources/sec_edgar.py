@@ -88,6 +88,38 @@ class SecEdgarClient:
             f"{base}/{accession_number}-index.html",
         )
 
+
+    async def get_filing_document(
+        self,
+        url: str,
+    ) -> str:
+        async with self._lock:
+            loop = asyncio.get_running_loop()
+            now = loop.time()
+
+            delay = (
+                self._minimum_delay_seconds
+                - (now - self._last_request_time)
+            )
+
+            if delay > 0:
+                await asyncio.sleep(delay)
+
+            response = await self._client.get(
+                url,
+                headers={
+                    "Accept": (
+                        "text/html,application/xhtml+xml,"
+                        "text/plain;q=0.9,*/*;q=0.8"
+                    )
+                },
+            )
+
+            self._last_request_time = loop.time()
+
+        response.raise_for_status()
+        return response.text
+
     async def _get_json(
         self,
         url: str,

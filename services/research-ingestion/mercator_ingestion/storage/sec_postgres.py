@@ -244,3 +244,148 @@ class SecFilingStore:
         raise ValueError(
             f"Unsupported SEC datetime format: {value!r}"
         )
+
+
+class SecDocumentStore:
+    def __init__(
+        self,
+        dsn: str = POSTGRES_DSN,
+    ) -> None:
+        self._dsn = dsn
+
+    def pending_filings(
+        self,
+        *,
+        cik: str,
+        forms: set[str],
+        limit: int,
+    ) -> list[dict[str, object]]:
+        from psycopg.rows import dict_row
+
+        with psycopg.connect(
+            self._dsn,
+            row_factory=dict_row,
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                        filing_id,
+                        cik,
+                        accession_number,
+                        form_type,
+                        filing_date,
+                        filing_url
+                    FROM sec_filings
+                    WHERE cik = %s
+                      AND form_type = ANY(%s)
+                      AND fetch_status IN (
+                          'DISCOVERED',
+                          'FAILED'
+                      )
+                    ORDER BY filing_date DESC
+                    LIMIT %s
+                    """,
+                    (
+                        cik.zfill(10),
+                        list(forms),
+                        limit,
+                    ),
+                )
+
+                return cursor.fetchall()
+
+    def save_document(
+        self,
+        *,
+        filing_id: object,
+        normalized_text: str,
+        content_hash: str,
+        sections: list[object],
+    ) -> None:
+        with psycopg.connect(self._dsn) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE sec_filings
+                    SET
+                        fetch_status = 'EXTRACTED',
+                        fetched_at = now(),
+                        content_hash = %s,
+                        normalized_text = %s,
+                        fetch_error = NULL
+                    WHERE filing_id = %s
+                    """,
+                    (
+                        content_hash,
+                        normalized_text,
+                        filing_id,
+                    ),
+                )
+
+                cursor.execute(
+                    """
+                    DELETE FROM sec_filing_sections
+                    WHERE filing_id = %s
+                    """,
+                    (filing_id,),
+                )
+
+                cursor.executemany(
+                    """
+                    INSERT INTO sec_filing_sections (
+                        filing_id,
+                        section_name,
+                        section_order,
+                        normalized_text,
+                        content_hash,
+                        start_character,
+                        end_character,
+                        extraction_method
+                    )
+                    VALUES (
+                        %s, %s, %s, %s,
+                        %s, %s, %s, %s
+                    )
+                    """,
+                    [
+                        (
+                            filing_id,
+                            section.name,
+                            section.order,
+                            section.text,
+                            section.content_hash,
+                            section.start_character,
+                            section.end_character,
+                            section.extraction_method,
+                        )
+                        for section in sections
+                    ],
+                )
+
+            connection.commit()
+
+    def mark_failure(
+        self,
+        *,
+        filing_id: object,
+        error: str,
+    ) -> None:
+        with psycopg.connect(self._dsn) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE sec_filings
+                    SET
+                        fetch_status = 'FAILED',
+                        fetched_at = now(),
+                        fetch_error = %s
+                    WHERE filing_id = %s
+                    """,
+                    (
+                        error[:2_000],
+                        filing_id,
+                    ),
+                )
+
+            connection.commit()
