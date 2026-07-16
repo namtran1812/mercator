@@ -11,6 +11,7 @@ import {
   fetchRfq,
 } from "../../services/rfq";
 import { useMarketStore } from "../../store/useMarketStore";
+import { useRfqStream } from "../../hooks/useRfqStream";
 import type {
   DealerQuote,
   RfqSide,
@@ -58,6 +59,8 @@ export function RfqPanel() {
   const [activeRfqId, setActiveRfqId] =
     useState<string | null>(null);
 
+  useRfqStream(activeRfqId);
+
   const createMutation = useMutation({
     mutationFn: createRfq,
     onSuccess: (rfq) => {
@@ -73,19 +76,7 @@ export function RfqPanel() {
     queryFn: () =>
       fetchRfq(activeRfqId as string),
     enabled: activeRfqId !== null,
-    refetchInterval: (query) => {
-      const data = query.state.data;
 
-      if (
-        data?.rfq.status === "EXECUTED"
-        || data?.rfq.status === "CANCELLED"
-        || data?.rfq.status === "EXPIRED"
-      ) {
-        return false;
-      }
-
-      return 500;
-    },
   });
 
   const activeQuotes =
