@@ -1,15 +1,26 @@
 import { create } from "zustand";
 import type { BondPrice } from "../types/bond";
 
+export interface StreamMetadata {
+  instrumentId: number;
+  eventTime: string;
+  sourceEventId: string;
+  dependencyTenor: string;
+  dependencyWeight: number;
+  priceChange: number;
+}
+
 interface MarketState {
   bonds: BondPrice[];
   selectedBondId: number | null;
+  lastStreamUpdate: StreamMetadata | null;
 
   setBonds: (bonds: BondPrice[]) => void;
 
   updateBond: (
     instrumentId: number,
     update: Partial<BondPrice>,
+    metadata?: StreamMetadata,
   ) => void;
 
   selectBond: (
@@ -21,6 +32,7 @@ export const useMarketStore =
   create<MarketState>((set) => ({
     bonds: [],
     selectedBondId: null,
+    lastStreamUpdate: null,
 
     setBonds: (bonds) =>
       set({ bonds }),
@@ -28,6 +40,7 @@ export const useMarketStore =
     updateBond: (
       instrumentId,
       update,
+      metadata,
     ) =>
       set((state) => ({
         bonds: state.bonds.map((bond) =>
@@ -38,6 +51,10 @@ export const useMarketStore =
               }
             : bond,
         ),
+
+        lastStreamUpdate:
+          metadata ??
+          state.lastStreamUpdate,
       })),
 
     selectBond: (instrumentId) =>

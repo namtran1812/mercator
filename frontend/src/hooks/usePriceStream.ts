@@ -6,6 +6,8 @@ interface StreamingPrice extends BondPrice {
   event_time: string;
   price_change: number;
   source_event_id: string;
+  dependency_tenor: string;
+  dependency_weight: number;
 }
 
 export function usePriceStream() {
@@ -26,12 +28,20 @@ export function usePriceStream() {
       updateBond(
         update.instrument_id,
         update,
-      );
-    };
-
-    websocket.onerror = () => {
-      console.error(
-        "Mercator price stream disconnected",
+        {
+          instrumentId:
+            update.instrument_id,
+          eventTime:
+            update.event_time,
+          sourceEventId:
+            update.source_event_id,
+          dependencyTenor:
+            update.dependency_tenor,
+          dependencyWeight:
+            update.dependency_weight,
+          priceChange:
+            update.price_change,
+        },
       );
     };
 

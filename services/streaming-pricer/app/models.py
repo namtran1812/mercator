@@ -30,6 +30,8 @@ class StreamingPrice(BaseModel):
 
     price_change: float
     source_event_id: str
+    dependency_tenor: str
+    dependency_weight: float
 
 
 class CurveSimulationConfig(BaseModel):

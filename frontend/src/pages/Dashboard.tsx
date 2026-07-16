@@ -23,6 +23,10 @@ export function Dashboard() {
     (state) => state.bonds,
   );
 
+  const lastStreamUpdate = useMarketStore(
+    (state) => state.lastStreamUpdate,
+  );
+
   const {
     data,
     isLoading,
@@ -68,6 +72,15 @@ export function Dashboard() {
                 ).toLocaleTimeString()
               : "Not updated"}
           </span>
+
+          {lastStreamUpdate && (
+            <span>
+              {lastStreamUpdate.dependencyTenor}
+              {" · "}
+              {(lastStreamUpdate.dependencyWeight * 100).toFixed(1)}
+              %
+            </span>
+          )}
 
           <span
             className={
