@@ -5,6 +5,7 @@ import { BondGrid } from "../components/BondGrid/BondGrid";
 import { BondDetails } from "../components/BondDetails/BondDetails";
 import { MarketSummary } from "../components/MarketSummary/MarketSummary";
 import { ScenarioPanel } from "../components/ScenarioPanel/ScenarioPanel";
+import { PortfolioPanel } from "../components/PortfolioPanel/PortfolioPanel";
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
 import { usePriceStream } from "../hooks/usePriceStream";
@@ -122,6 +123,7 @@ export function Dashboard() {
 
           <BondGrid />
           <ScenarioPanel />
+          <PortfolioPanel />
           <BondDetails />
         </div>
 

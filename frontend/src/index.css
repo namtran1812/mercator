@@ -424,3 +424,82 @@ h2 {
 .negative-value {
   color: #ff8585;
 }
+
+.portfolio-panel {
+  margin-top: 14px;
+  border: 1px solid #202830;
+  padding: 18px;
+  background: #0a0e12;
+}
+
+.portfolio-input {
+  display: block;
+  margin: 16px 0 10px;
+  color: #7f8c97;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.portfolio-input input {
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid #27323a;
+  border-radius: 3px;
+  padding: 10px;
+  color: #e0e8ed;
+  background: #090d10;
+}
+
+.portfolio-panel button {
+  border: 1px solid #47e6a1;
+  border-radius: 3px;
+  padding: 10px 16px;
+  color: #08110d;
+  background: #47e6a1;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.portfolio-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.portfolio-metrics article {
+  border: 1px solid #263039;
+  padding: 12px;
+  background: #0d1216;
+}
+
+.portfolio-metrics span {
+  display: block;
+  color: #7f8c97;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.portfolio-metrics strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.portfolio-ranking {
+  margin-top: 12px;
+}
+
+.portfolio-ranking div {
+  display: grid;
+  grid-template-columns:
+    80px 1fr 1fr 80px;
+  gap: 10px;
+  border-bottom: 1px solid #1e272e;
+  padding: 9px 4px;
+  color: #aab5bd;
+  font-family:
+    ui-monospace, SFMono-Regular,
+    Menlo, monospace;
+  font-size: 12px;
+}

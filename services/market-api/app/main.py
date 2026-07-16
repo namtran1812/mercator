@@ -7,10 +7,13 @@ from .models import (
     LatestBondPrice,
     MarketSummary,
     PriceHistoryPoint,
+    PortfolioRiskRequest,
+    PortfolioRiskResponse,
     ScenarioRequest,
     ScenarioResponse,
 )
 from .repository import MarketRepository
+from .portfolio import calculate_portfolio_risk
 from .scenario import calculate_scenario
 
 
@@ -101,6 +104,28 @@ def run_scenario(
     )
 
     return calculate_scenario(
+        prices,
+        request,
+    )
+
+
+@app.post(
+    "/portfolio/risk",
+    response_model=PortfolioRiskResponse,
+)
+def portfolio_risk(
+    request: PortfolioRiskRequest,
+) -> PortfolioRiskResponse:
+    instrument_ids = [
+        position.instrument_id
+        for position in request.positions
+    ]
+
+    prices = repository.latest_prices_by_ids(
+        instrument_ids
+    )
+
+    return calculate_portfolio_risk(
         prices,
         request,
     )

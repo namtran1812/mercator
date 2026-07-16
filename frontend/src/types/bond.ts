@@ -68,3 +68,35 @@ export interface ScenarioResponse {
   total_estimated_pnl: number;
   results: ScenarioResult[];
 }
+
+export interface PortfolioPosition {
+  instrument_id: number;
+  face_value: number;
+}
+
+export interface PositionRisk {
+  instrument_id: number;
+  face_value: number;
+  clean_price: number;
+  market_value: number;
+  yield_to_maturity: number;
+  g_spread_bps: number;
+  modified_duration: number;
+  convexity: number;
+  dv01: number;
+  convexity_contribution: number;
+  market_value_weight: number;
+}
+
+export interface PortfolioRiskResponse {
+  position_count: number;
+  total_face_value: number;
+  total_market_value: number;
+  weighted_yield_to_maturity: number;
+  weighted_g_spread_bps: number;
+  weighted_modified_duration: number;
+  weighted_convexity: number;
+  total_dv01: number;
+  total_convexity_contribution: number;
+  positions: PositionRisk[];
+}

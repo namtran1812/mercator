@@ -100,3 +100,52 @@ class ScenarioResponse(BaseModel):
     total_estimated_pnl: float
 
     results: list[ScenarioResult]
+
+
+class PortfolioPosition(BaseModel):
+    instrument_id: int
+    face_value: float = Field(
+        gt=0.0,
+        le=1_000_000_000.0,
+    )
+
+
+class PortfolioRiskRequest(BaseModel):
+    positions: list[PortfolioPosition] = Field(
+        min_length=1,
+        max_length=10_000,
+    )
+
+
+class PositionRisk(BaseModel):
+    instrument_id: int
+    face_value: float
+
+    clean_price: float
+    market_value: float
+
+    yield_to_maturity: float
+    g_spread_bps: float
+    modified_duration: float
+    convexity: float
+
+    dv01: float
+    convexity_contribution: float
+
+    market_value_weight: float
+
+
+class PortfolioRiskResponse(BaseModel):
+    position_count: int
+    total_face_value: float
+    total_market_value: float
+
+    weighted_yield_to_maturity: float
+    weighted_g_spread_bps: float
+    weighted_modified_duration: float
+    weighted_convexity: float
+
+    total_dv01: float
+    total_convexity_contribution: float
+
+    positions: list[PositionRisk]

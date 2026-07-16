@@ -68,3 +68,20 @@ export async function runScenario(
 
   return response.data;
 }
+
+export async function fetchPortfolioRisk(
+  positions: import("../types/bond").PortfolioPosition[],
+): Promise<
+  import("../types/bond").PortfolioRiskResponse
+> {
+  const response = await marketApi.post<
+    import("../types/bond").PortfolioRiskResponse
+  >(
+    "/portfolio/risk",
+    {
+      positions,
+    },
+  );
+
+  return response.data;
+}
