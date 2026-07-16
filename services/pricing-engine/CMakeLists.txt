@@ -199,3 +199,30 @@ target_compile_options(
     -Wextra
     -Wpedantic
 )
+
+add_executable(
+    mercator-data-quality-tests
+    tests/data_quality_test.cpp
+    src/data_quality.cpp
+)
+
+target_include_directories(
+    mercator-data-quality-tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-data-quality-tests
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-data-quality-tests
+    COMMAND mercator-data-quality-tests
+)
