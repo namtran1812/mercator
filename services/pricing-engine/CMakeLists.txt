@@ -14,6 +14,7 @@ add_executable(
     src/yield_curve.cpp
     src/dependency_graph.cpp
     src/dependency_resolver.cpp
+    src/repricing_service.cpp
 )
 
 target_include_directories(
@@ -166,6 +167,32 @@ target_include_directories(
 
 target_compile_options(
     mercator-selective-repricing-benchmark
+    PRIVATE
+    -O3
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+add_executable(
+    mercator-repricing-demo
+    src/repricing_demo.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+    src/yield_curve.cpp
+    src/dependency_graph.cpp
+    src/dependency_resolver.cpp
+    src/repricing_service.cpp
+)
+
+target_include_directories(
+    mercator-repricing-demo
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-repricing-demo
     PRIVATE
     -O3
     -Wall
