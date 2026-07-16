@@ -63,28 +63,36 @@ std::vector<EvaluatedPrice> RepricingService::reprice(
         const PricingInstrument& instrument =
             iterator->second;
 
-        const double dirty_price =
-            present_value_from_curve(
-                instrument.cashflows,
+        const PriceBreakdown prices =
+            price_from_curve(
+                instrument.schedule,
                 valuation_date_,
                 updated_curve,
                 instrument.spread_bps
             );
 
+        const double solved_g_spread_bps =
+            solve_g_spread_bps(
+                instrument.schedule,
+                valuation_date_,
+                updated_curve,
+                prices.dirty_price
+            );
+
         const BondAnalytics analytics =
             calculate_bond_analytics(
-                instrument.cashflows,
+                instrument.schedule.cashflows,
                 valuation_date_,
-                dirty_price,
-                2
+                prices.dirty_price,
+                instrument.schedule.payments_per_year
             );
 
         results.push_back(EvaluatedPrice{
             .instrument_id = instrument.instrument_id,
-            .clean_price = dirty_price,
-            .dirty_price = dirty_price,
+            .clean_price = prices.clean_price,
+            .dirty_price = prices.dirty_price,
             .yield_to_maturity = analytics.yield_to_maturity,
-            .g_spread_bps = instrument.spread_bps,
+            .g_spread_bps = solved_g_spread_bps,
             .modified_duration = analytics.modified_duration,
             .convexity = analytics.convexity,
             .curve_version = updated_curve.version(),

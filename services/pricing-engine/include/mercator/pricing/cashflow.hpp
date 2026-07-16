@@ -12,7 +12,25 @@ struct CashFlow {
     double amount;
 };
 
-std::vector<CashFlow> generate_fixed_rate_cashflows(
+struct CouponSchedule {
+    std::vector<CashFlow> cashflows;
+    Date issue_date;
+    Date maturity_date;
+    double face_value;
+    double annual_coupon_rate;
+    int payments_per_year;
+};
+
+[[nodiscard]] CouponSchedule generate_fixed_rate_schedule(
+    double face_value,
+    double annual_coupon_rate,
+    int payments_per_year,
+    Date issue_date,
+    Date maturity_date
+);
+
+[[nodiscard]] std::vector<CashFlow>
+generate_fixed_rate_cashflows(
     double face_value,
     double annual_coupon_rate,
     int payments_per_year,

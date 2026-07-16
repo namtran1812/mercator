@@ -226,3 +226,32 @@ add_test(
     NAME mercator-data-quality-tests
     COMMAND mercator-data-quality-tests
 )
+
+add_executable(
+    mercator-clean-price-tests
+    tests/clean_price_test.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+    src/yield_curve.cpp
+)
+
+target_include_directories(
+    mercator-clean-price-tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-clean-price-tests
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-clean-price-tests
+    COMMAND mercator-clean-price-tests
+)

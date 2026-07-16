@@ -14,7 +14,7 @@ namespace mercator::pricing {
 
 struct PricingInstrument {
     InstrumentId instrument_id;
-    std::vector<CashFlow> cashflows;
+    CouponSchedule schedule;
     double spread_bps;
     std::uint64_t reference_version;
 };

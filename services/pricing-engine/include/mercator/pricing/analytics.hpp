@@ -7,6 +7,36 @@
 
 namespace mercator::pricing {
 
+
+struct PriceBreakdown {
+    double clean_price;
+    double dirty_price;
+    double accrued_interest;
+};
+
+double accrued_interest_actual_actual(
+    const CouponSchedule& schedule,
+    Date settlement_date
+);
+
+PriceBreakdown price_from_curve(
+    const CouponSchedule& schedule,
+    Date settlement_date,
+    const YieldCurve& curve,
+    double spread_bps = 0.0
+);
+
+double solve_g_spread_bps(
+    const CouponSchedule& schedule,
+    Date settlement_date,
+    const YieldCurve& curve,
+    double target_dirty_price,
+    double lower_bound_bps = -1000.0,
+    double upper_bound_bps = 5000.0,
+    double tolerance = 1e-10,
+    int max_iterations = 200
+);
+
 struct BondAnalytics {
     double dirty_price;
     double yield_to_maturity;

@@ -105,18 +105,24 @@ int main() {
             valuation_date.day()
         };
 
-        auto cashflows = generate_fixed_rate_cashflows(
+        const Date issue_date{
+            valuation_date.year() - years{1},
+            valuation_date.month(),
+            day{1}
+        };
+
+        auto schedule = generate_fixed_rate_schedule(
             1000.0,
             coupon_distribution(generator),
             2,
-            valuation_date,
+            issue_date,
             maturity_date
         );
 
         graph.register_instrument(
             instrument_id,
             resolve_curve_dependencies(
-                cashflows,
+                schedule.cashflows,
                 valuation_date,
                 dependency_nodes
             )
@@ -126,7 +132,7 @@ int main() {
             instrument_id,
             PricingInstrument{
                 .instrument_id = instrument_id,
-                .cashflows = std::move(cashflows),
+                .schedule = std::move(schedule),
                 .spread_bps = spread_distribution(generator),
                 .reference_version = 1,
             }
