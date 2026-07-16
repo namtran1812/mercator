@@ -12,6 +12,8 @@ add_executable(
     src/cashflow.cpp
     src/analytics.cpp
     src/yield_curve.cpp
+    src/dependency_graph.cpp
+    src/dependency_resolver.cpp
 )
 
 target_include_directories(
@@ -88,4 +90,60 @@ target_compile_options(
 add_test(
     NAME mercator-yield-curve-tests
     COMMAND mercator-yield-curve-tests
+)
+
+add_executable(
+    mercator-dependency-graph-tests
+    tests/dependency_graph_test.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+    src/yield_curve.cpp
+    src/dependency_graph.cpp
+    src/dependency_resolver.cpp
+)
+
+target_include_directories(
+    mercator-dependency-graph-tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-dependency-graph-tests
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-dependency-graph-tests
+    COMMAND mercator-dependency-graph-tests
+)
+
+add_executable(
+    mercator-incremental-repricing-benchmark
+    benchmarks/incremental_repricing.cpp
+    src/cashflow.cpp
+    src/analytics.cpp
+    src/yield_curve.cpp
+    src/dependency_graph.cpp
+    src/dependency_resolver.cpp
+)
+
+target_include_directories(
+    mercator-incremental-repricing-benchmark
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    mercator-incremental-repricing-benchmark
+    PRIVATE
+    -O3
+    -Wall
+    -Wextra
+    -Wpedantic
 )
