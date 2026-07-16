@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# C/C++
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+*.o
+*.a
+*.so
+*.dylib
+*.out
+
+# Go
+bin/
+vendor/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs and generated data
+*.log
+data/
+artifacts/
+coverage/
