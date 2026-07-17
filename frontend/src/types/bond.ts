@@ -266,3 +266,34 @@ export interface RelativeValueResponse {
   average_duration: number;
   opportunities: RelativeValueOpportunity[];
 }
+
+export interface CarryRollOpportunity {
+  instrument_id: number;
+  clean_price: number;
+  yield_to_maturity: number;
+  g_spread_bps: number;
+  modified_duration: number;
+  convexity: number;
+  horizon_months: number;
+  coupon_carry_return_percent: number;
+  financing_cost_return_percent: number;
+  treasury_roll_down_bps: number;
+  treasury_roll_return_percent: number;
+  peer_average_spread_bps: number;
+  expected_spread_change_bps: number;
+  spread_normalization_return_percent: number;
+  expected_total_return_percent: number;
+  expected_pnl_per_million: number;
+  classification:
+    | "ATTRACTIVE"
+    | "NEUTRAL"
+    | "UNATTRACTIVE";
+  conviction_score: number;
+}
+
+export interface CarryRollResponse {
+  instrument_count: number;
+  horizon_months: number;
+  average_expected_return_percent: number;
+  opportunities: CarryRollOpportunity[];
+}

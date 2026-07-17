@@ -230,3 +230,62 @@ class RelativeValueResponse(BaseModel):
     average_duration: float
 
     opportunities: list[RelativeValueOpportunity]
+
+
+class CarryRollRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=2,
+        max_length=10_000,
+    )
+
+    horizon_months: int = Field(
+        default=3,
+        ge=1,
+        le=24,
+    )
+
+    annual_financing_rate: float = Field(
+        default=0.045,
+        ge=-0.05,
+        le=0.25,
+    )
+
+    expected_spread_normalization_fraction: float = Field(
+        default=0.25,
+        ge=0.0,
+        le=1.0,
+    )
+
+
+class CarryRollOpportunity(BaseModel):
+    instrument_id: int
+
+    clean_price: float
+    yield_to_maturity: float
+    g_spread_bps: float
+    modified_duration: float
+    convexity: float
+
+    horizon_months: int
+
+    coupon_carry_return_percent: float
+    financing_cost_return_percent: float
+    treasury_roll_down_bps: float
+    treasury_roll_return_percent: float
+
+    peer_average_spread_bps: float
+    expected_spread_change_bps: float
+    spread_normalization_return_percent: float
+
+    expected_total_return_percent: float
+    expected_pnl_per_million: float
+
+    classification: str
+    conviction_score: float
+
+
+class CarryRollResponse(BaseModel):
+    instrument_count: int
+    horizon_months: int
+    average_expected_return_percent: float
+    opportunities: list[CarryRollOpportunity]

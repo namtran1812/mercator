@@ -115,3 +115,25 @@ export async function fetchRelativeValue(
 
   return response.data;
 }
+
+export async function fetchCarryRoll(
+  instrumentIds: number[],
+  horizonMonths = 3,
+): Promise<
+  import("../types/bond").CarryRollResponse
+> {
+  const response = await marketApi.post<
+    import("../types/bond").CarryRollResponse
+  >(
+    "/carry-roll/rank",
+    {
+      instrument_ids: instrumentIds,
+      horizon_months: horizonMonths,
+      annual_financing_rate: 0.045,
+      expected_spread_normalization_fraction:
+        0.25,
+    },
+  );
+
+  return response.data;
+}

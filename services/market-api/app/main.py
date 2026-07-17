@@ -12,9 +12,13 @@ from .models import (
     ReplayScenario,
     RelativeValueRequest,
     RelativeValueResponse,
+    CarryRollRequest,
+    CarryRollResponse,
     ReplayScenario,
     RelativeValueRequest,
     RelativeValueResponse,
+    CarryRollRequest,
+    CarryRollResponse,
     ScenarioRequest,
     ScenarioResponse,
 )
@@ -22,6 +26,7 @@ from .repository import MarketRepository
 from .portfolio import calculate_portfolio_risk
 from .scenario import calculate_scenario
 from .relative_value import calculate_relative_value
+from .carry_roll import calculate_carry_roll
 
 
 app = FastAPI(
@@ -166,6 +171,23 @@ def rank_relative_value(
     )
 
     return calculate_relative_value(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/carry-roll/rank",
+    response_model=CarryRollResponse,
+)
+def rank_carry_roll(
+    request: CarryRollRequest,
+) -> CarryRollResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_carry_roll(
         prices=prices,
         request=request,
     )
