@@ -14,6 +14,12 @@ from .models import (
     RelativeValueResponse,
     CarryRollRequest,
     CarryRollResponse,
+    RiskDecompositionRequest,
+    RiskDecompositionResponse,
+    StressRequest,
+    StressResponse,
+    HistoricalVarRequest,
+    HistoricalVarResponse,
     ReplayScenario,
     RelativeValueRequest,
     RelativeValueResponse,
@@ -27,6 +33,9 @@ from .portfolio import calculate_portfolio_risk
 from .scenario import calculate_scenario
 from .relative_value import calculate_relative_value
 from .carry_roll import calculate_carry_roll
+from .risk_decomposition import calculate_risk_decomposition
+from .stress import calculate_stress
+from .historical_var import calculate_historical_var
 
 
 app = FastAPI(
@@ -188,6 +197,57 @@ def rank_carry_roll(
     )
 
     return calculate_carry_roll(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/risk/decomposition",
+    response_model=RiskDecompositionResponse,
+)
+def risk_decomposition(
+    request: RiskDecompositionRequest,
+) -> RiskDecompositionResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_risk_decomposition(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/stress/run",
+    response_model=StressResponse,
+)
+def run_stress(
+    request: StressRequest,
+) -> StressResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_stress(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/risk/historical-var",
+    response_model=HistoricalVarResponse,
+)
+def historical_var(
+    request: HistoricalVarRequest,
+) -> HistoricalVarResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_historical_var(
         prices=prices,
         request=request,
     )

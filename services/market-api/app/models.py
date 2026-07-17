@@ -289,3 +289,173 @@ class CarryRollResponse(BaseModel):
     horizon_months: int
     average_expected_return_percent: float
     opportunities: list[CarryRollOpportunity]
+
+
+class RiskDecompositionRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=1,
+        max_length=10_000,
+    )
+
+    position_notional: float = Field(
+        default=1_000_000.0,
+        gt=0.0,
+        le=1_000_000_000.0,
+    )
+
+
+class KeyRateExposure(BaseModel):
+    tenor: str
+    tenor_years: float
+    key_rate_duration: float
+    key_rate_dv01: float
+
+
+class InstrumentRiskDecomposition(BaseModel):
+    instrument_id: int
+    clean_price: float
+    modified_duration: float
+    g_spread_bps: float
+
+    position_notional: float
+    market_value: float
+
+    aggregate_dv01: float
+    cs01: float
+
+    key_rate_exposures: list[KeyRateExposure]
+
+
+class RiskDecompositionResponse(BaseModel):
+    instrument_count: int
+    position_notional_per_instrument: float
+
+    total_market_value: float
+    total_dv01: float
+    total_cs01: float
+
+    portfolio_key_rate_dv01: list[KeyRateExposure]
+    instruments: list[InstrumentRiskDecomposition]
+
+
+
+class StressScenario(BaseModel):
+    treasury_parallel_bps: float = Field(
+        default=0.0,
+        ge=-1000.0,
+        le=1000.0,
+    )
+    treasury_2y_bps: float = Field(
+        default=0.0,
+        ge=-1000.0,
+        le=1000.0,
+    )
+    treasury_5y_bps: float = Field(
+        default=0.0,
+        ge=-1000.0,
+        le=1000.0,
+    )
+    treasury_10y_bps: float = Field(
+        default=0.0,
+        ge=-1000.0,
+        le=1000.0,
+    )
+    treasury_30y_bps: float = Field(
+        default=0.0,
+        ge=-1000.0,
+        le=1000.0,
+    )
+    credit_parallel_bps: float = Field(
+        default=0.0,
+        ge=-2000.0,
+        le=2000.0,
+    )
+
+
+class StressRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=1,
+        max_length=10_000,
+    )
+    position_notional: float = Field(
+        default=1_000_000.0,
+        gt=0.0,
+        le=1_000_000_000.0,
+    )
+    scenario: StressScenario
+
+
+class StressResult(BaseModel):
+    instrument_id: int
+    market_value: float
+    treasury_pnl: float
+    credit_pnl: float
+    total_pnl: float
+
+
+class StressResponse(BaseModel):
+    instrument_count: int
+    total_market_value: float
+    total_treasury_pnl: float
+    total_credit_pnl: float
+    total_pnl: float
+    instruments: list[StressResult]
+
+
+
+class HistoricalVarRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=1,
+        max_length=10_000,
+    )
+    position_notional: float = Field(
+        default=1_000_000.0,
+        gt=0.0,
+        le=1_000_000_000.0,
+    )
+    confidence_level: float = Field(
+        default=0.99,
+        ge=0.90,
+        le=0.999,
+    )
+    lookback_days: int = Field(
+        default=250,
+        ge=30,
+        le=5_000,
+    )
+    seed: int = Field(
+        default=42,
+        ge=0,
+        le=2_147_483_647,
+    )
+
+
+class HistoricalVarObservation(BaseModel):
+    observation_index: int
+    treasury_shock_bps: float
+    credit_shock_bps: float
+    portfolio_pnl: float
+
+
+class HistoricalVarInstrumentContribution(BaseModel):
+    instrument_id: int
+    market_value: float
+    dv01: float
+    cs01: float
+    var_contribution: float
+
+
+class HistoricalVarResponse(BaseModel):
+    instrument_count: int
+    observation_count: int
+    confidence_level: float
+    total_market_value: float
+    value_at_risk: float
+    expected_shortfall: float
+    worst_historical_loss: float
+    average_daily_pnl: float
+    pnl_volatility: float
+    observations: list[HistoricalVarObservation]
+    instrument_contributions: list[
+        HistoricalVarInstrumentContribution
+    ]
