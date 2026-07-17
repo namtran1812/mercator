@@ -600,3 +600,51 @@ class RiskBudgetOptimizationResponse(BaseModel):
     max_portfolio_dv01: float
     max_portfolio_cs01: float
     allocations: list[RiskBudgetAllocation]
+
+
+class ScenarioAnalysisRequest(BaseModel):
+    instrument_ids: list[int]
+    position_notional: float = Field(gt=0)
+
+    treasury_shift_bps: float = 0.0
+    spread_shift_bps: float = 0.0
+
+    liquidity_haircut_percent: float = Field(
+        default=0.0,
+        ge=0,
+        le=100,
+    )
+
+    downgrade_notches: int = Field(
+        default=0,
+        ge=0,
+        le=5,
+    )
+
+
+class ScenarioInstrumentResult(BaseModel):
+    instrument_id: int
+
+    pnl: float
+
+    treasury_pnl: float
+
+    spread_pnl: float
+
+    liquidity_pnl: float
+
+    downgrade_pnl: float
+
+
+class ScenarioAnalysisResponse(BaseModel):
+    total_pnl: float
+
+    treasury_pnl: float
+
+    spread_pnl: float
+
+    liquidity_pnl: float
+
+    downgrade_pnl: float
+
+    instruments: list[ScenarioInstrumentResult]

@@ -26,6 +26,8 @@ from .models import (
     PortfolioOptimizationResponse,
     RiskBudgetOptimizationRequest,
     RiskBudgetOptimizationResponse,
+    ScenarioAnalysisRequest,
+    ScenarioAnalysisResponse,
     ReplayScenario,
     RelativeValueRequest,
     RelativeValueResponse,
@@ -45,6 +47,7 @@ from .historical_var import calculate_historical_var
 from .hedging import calculate_hedge_recommendations
 from .optimizer import optimize_portfolio
 from .risk_optimizer import optimize_with_risk_budget
+from .scenario_analysis import analyze_scenario
 
 
 app = FastAPI(
@@ -312,3 +315,26 @@ def optimize_risk_budget(
         prices=prices,
         request=request,
     )
+
+
+@app.post(
+    "/risk/scenario-analysis",
+    response_model=ScenarioAnalysisResponse,
+)
+def scenario_analysis(
+    request: ScenarioAnalysisRequest,
+) -> ScenarioAnalysisResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    try:
+        return analyze_scenario(
+            prices=prices,
+            request=request,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
