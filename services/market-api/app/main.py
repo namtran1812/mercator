@@ -1,4 +1,15 @@
 from __future__ import annotations
+from pathlib import Path
+
+from fastapi import WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
+
+from .market_stream import market_stream_runtime
+from .models import (
+    MarketStreamStartRequest,
+    MarketStreamStatusResponse,
+)
+
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,9 +62,17 @@ from .scenario_analysis import analyze_scenario
 
 
 app = FastAPI(
+
     title="Mercator Market API",
     version="0.1.0",
 )
+
+WORKBENCH_PATH = (
+    Path(__file__).resolve().parent
+    / "static"
+    / "workbench.html"
+)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -338,3 +357,150 @@ def scenario_analysis(
             status_code=404,
             detail=str(exc),
         ) from exc
+
+
+@app.websocket("/ws/market-data")
+async def market_data_websocket(
+    websocket: WebSocket,
+) -> None:
+    await market_stream_runtime.hub.connect(
+        websocket
+    )
+
+    try:
+        await websocket.send_json(
+            {
+                "type": "connected",
+                "message": (
+                    "Mercator market-data stream connected."
+                ),
+            }
+        )
+
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        await market_stream_runtime.hub.disconnect(
+            websocket
+        )
+    except Exception:
+        await market_stream_runtime.hub.disconnect(
+            websocket
+        )
+
+
+@app.post(
+    "/stream/start",
+    response_model=MarketStreamStatusResponse,
+)
+async def start_market_stream(
+    request: MarketStreamStartRequest,
+) -> MarketStreamStatusResponse:
+    if market_stream_runtime.running:
+        raise HTTPException(
+            status_code=409,
+            detail="Market stream is already running.",
+        )
+
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    try:
+        await market_stream_runtime.start(
+            prices=prices,
+            interval_ms=request.interval_ms,
+            volatility_bps=request.volatility_bps,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+    market = market_stream_runtime.market
+
+    return MarketStreamStatusResponse(
+        running=market_stream_runtime.running,
+        client_count=(
+            market_stream_runtime.hub.client_count
+        ),
+        instrument_count=(
+            market.instrument_count
+            if market is not None
+            else 0
+        ),
+        interval_ms=(
+            market_stream_runtime.interval_ms
+        ),
+        sequence=(
+            market.sequence
+            if market is not None
+            else 0
+        ),
+    )
+
+
+@app.post(
+    "/stream/stop",
+    response_model=MarketStreamStatusResponse,
+)
+async def stop_market_stream(
+) -> MarketStreamStatusResponse:
+    await market_stream_runtime.stop()
+
+    return MarketStreamStatusResponse(
+        running=False,
+        client_count=(
+            market_stream_runtime.hub.client_count
+        ),
+        instrument_count=0,
+        interval_ms=None,
+        sequence=0,
+    )
+
+
+@app.get(
+    "/stream/status",
+    response_model=MarketStreamStatusResponse,
+)
+async def get_market_stream_status(
+) -> MarketStreamStatusResponse:
+    market = market_stream_runtime.market
+
+    return MarketStreamStatusResponse(
+        running=market_stream_runtime.running,
+        client_count=(
+            market_stream_runtime.hub.client_count
+        ),
+        instrument_count=(
+            market.instrument_count
+            if market is not None
+            else 0
+        ),
+        interval_ms=(
+            market_stream_runtime.interval_ms
+        ),
+        sequence=(
+            market.sequence
+            if market is not None
+            else 0
+        ),
+    )
+
+
+
+@app.get(
+    "/workbench",
+    include_in_schema=False,
+)
+async def portfolio_workbench() -> FileResponse:
+    return FileResponse(
+        WORKBENCH_PATH,
+        media_type="text/html",
+    )
