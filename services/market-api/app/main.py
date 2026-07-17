@@ -20,6 +20,8 @@ from .models import (
     StressResponse,
     HistoricalVarRequest,
     HistoricalVarResponse,
+    HedgeRecommendationRequest,
+    HedgeRecommendationResponse,
     ReplayScenario,
     RelativeValueRequest,
     RelativeValueResponse,
@@ -36,6 +38,7 @@ from .carry_roll import calculate_carry_roll
 from .risk_decomposition import calculate_risk_decomposition
 from .stress import calculate_stress
 from .historical_var import calculate_historical_var
+from .hedging import calculate_hedge_recommendations
 
 
 app = FastAPI(
@@ -248,6 +251,23 @@ def historical_var(
     )
 
     return calculate_historical_var(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/risk/hedge-recommendations",
+    response_model=HedgeRecommendationResponse,
+)
+def hedge_recommendations(
+    request: HedgeRecommendationRequest,
+) -> HedgeRecommendationResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return calculate_hedge_recommendations(
         prices=prices,
         request=request,
     )

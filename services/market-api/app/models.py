@@ -459,3 +459,51 @@ class HistoricalVarResponse(BaseModel):
     instrument_contributions: list[
         HistoricalVarInstrumentContribution
     ]
+
+
+
+class HedgeRecommendationRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=1,
+        max_length=10_000,
+    )
+    position_notional: float = Field(
+        default=1_000_000.0,
+        gt=0.0,
+        le=1_000_000_000.0,
+    )
+    hedge_ratio: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.5,
+    )
+    include_credit_hedge: bool = True
+
+
+class TreasuryHedgeRecommendation(BaseModel):
+    tenor: str
+    tenor_years: float
+    portfolio_key_rate_dv01: float
+    hedge_instrument_dv01_per_million: float
+    recommended_notional: float
+
+
+class CreditHedgeRecommendation(BaseModel):
+    portfolio_cs01: float
+    hedge_cs01_per_million: float
+    recommended_notional: float
+    hedge_instrument: str
+
+
+class HedgeRecommendationResponse(BaseModel):
+    instrument_count: int
+    total_market_value: float
+    total_dv01: float
+    total_cs01: float
+    hedge_ratio: float
+    treasury_hedges: list[
+        TreasuryHedgeRecommendation
+    ]
+    credit_hedge: CreditHedgeRecommendation | None
+    residual_dv01: float
+    residual_cs01: float
