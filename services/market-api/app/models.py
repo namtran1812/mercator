@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal
 
 from datetime import datetime
 
@@ -507,3 +508,95 @@ class HedgeRecommendationResponse(BaseModel):
     credit_hedge: CreditHedgeRecommendation | None
     residual_dv01: float
     residual_cs01: float
+
+
+class PortfolioOptimizationRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=2,
+        max_length=10000,
+    )
+
+    total_notional: float = Field(
+        default=10000000,
+        gt=0,
+    )
+
+    max_position_percent: float = Field(
+        default=0.20,
+        gt=0,
+        le=1,
+    )
+
+    objective: Literal[
+        "carry",
+        "spread",
+        "risk_adjusted"
+    ] = "risk_adjusted"
+
+
+class PortfolioAllocation(BaseModel):
+    instrument_id: int
+    weight: float
+    target_notional: float
+    expected_score: float
+
+
+class PortfolioOptimizationResponse(BaseModel):
+    objective: str
+    total_notional: float
+    allocations: list[
+        PortfolioAllocation
+    ]
+
+
+
+class RiskBudgetOptimizationRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=2,
+        max_length=10_000,
+    )
+    total_notional: float = Field(
+        default=10_000_000.0,
+        gt=0.0,
+        le=10_000_000_000.0,
+    )
+    max_position_percent: float = Field(
+        default=0.20,
+        gt=0.0,
+        le=1.0,
+    )
+    max_portfolio_dv01: float = Field(
+        default=100_000.0,
+        gt=0.0,
+    )
+    max_portfolio_cs01: float = Field(
+        default=100_000.0,
+        gt=0.0,
+    )
+    objective: Literal[
+        "carry",
+        "spread",
+        "risk_adjusted",
+    ] = "risk_adjusted"
+
+
+class RiskBudgetAllocation(BaseModel):
+    instrument_id: int
+    weight: float
+    target_notional: float
+    expected_score: float
+    dv01: float
+    cs01: float
+
+
+class RiskBudgetOptimizationResponse(BaseModel):
+    objective: str
+    requested_notional: float
+    invested_notional: float
+    cash_notional: float
+    invested_percent: float
+    portfolio_dv01: float
+    portfolio_cs01: float
+    max_portfolio_dv01: float
+    max_portfolio_cs01: float
+    allocations: list[RiskBudgetAllocation]

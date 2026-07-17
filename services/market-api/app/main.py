@@ -22,6 +22,10 @@ from .models import (
     HistoricalVarResponse,
     HedgeRecommendationRequest,
     HedgeRecommendationResponse,
+    PortfolioOptimizationRequest,
+    PortfolioOptimizationResponse,
+    RiskBudgetOptimizationRequest,
+    RiskBudgetOptimizationResponse,
     ReplayScenario,
     RelativeValueRequest,
     RelativeValueResponse,
@@ -39,6 +43,8 @@ from .risk_decomposition import calculate_risk_decomposition
 from .stress import calculate_stress
 from .historical_var import calculate_historical_var
 from .hedging import calculate_hedge_recommendations
+from .optimizer import optimize_portfolio
+from .risk_optimizer import optimize_with_risk_budget
 
 
 app = FastAPI(
@@ -268,6 +274,41 @@ def hedge_recommendations(
     )
 
     return calculate_hedge_recommendations(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/portfolio/optimize",
+    response_model=PortfolioOptimizationResponse,
+)
+def optimize(
+    request: PortfolioOptimizationRequest,
+):
+
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return optimize_portfolio(
+        prices=prices,
+        request=request,
+    )
+
+
+@app.post(
+    "/portfolio/optimize-risk",
+    response_model=RiskBudgetOptimizationResponse,
+)
+def optimize_risk_budget(
+    request: RiskBudgetOptimizationRequest,
+) -> RiskBudgetOptimizationResponse:
+    prices = repository.latest_prices_by_ids(
+        request.instrument_ids
+    )
+
+    return optimize_with_risk_budget(
         prices=prices,
         request=request,
     )
