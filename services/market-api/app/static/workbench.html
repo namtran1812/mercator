@@ -8,368 +8,356 @@
   >
   <title>Mercator Portfolio Workbench</title>
 
-  <style>
-    :root {
-      color-scheme: dark;
-      font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-      background: #0a0d12;
-      color: #e7edf5;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(
-          circle at top right,
-          rgba(59, 130, 246, 0.12),
-          transparent 35%
-        ),
-        #0a0d12;
-    }
-
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .shell {
-      width: min(1500px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 24px 0 48px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    .eyebrow {
-      color: #6ea8fe;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 6px 0;
-      font-size: clamp(28px, 4vw, 44px);
-      line-height: 1;
-    }
-
-    .subtitle {
-      margin: 0;
-      color: #8c98a8;
-    }
-
-    .connection {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid #252c37;
-      border-radius: 999px;
-      padding: 8px 12px;
-      background: #10151d;
-      color: #aab4c3;
-      font-size: 13px;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #64748b;
-    }
-
-    .dot.connected {
-      background: #36d399;
-      box-shadow: 0 0 10px rgba(54, 211, 153, 0.7);
-    }
-
-    .dot.error {
-      background: #fb7185;
-    }
-
-    .grid {
-      display: grid;
-      gap: 16px;
-    }
-
-    .controls-grid {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      margin-bottom: 16px;
-    }
-
-    .metric-grid {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      margin-bottom: 16px;
-    }
-
-    .main-grid {
-      grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.75fr);
-    }
-
-    .card {
-      border: 1px solid #222a35;
-      border-radius: 14px;
-      background: rgba(15, 20, 28, 0.93);
-      box-shadow:
-        0 12px 32px rgba(0, 0, 0, 0.2);
-    }
-
-    .control {
-      padding: 14px;
-    }
-
-    .control label {
-      display: block;
-      margin-bottom: 7px;
-      color: #8591a1;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    input,
-    select {
-      width: 100%;
-      border: 1px solid #303947;
-      border-radius: 9px;
-      padding: 10px 11px;
-      background: #0b1017;
-      color: #e7edf5;
-      outline: none;
-    }
-
-    input:focus,
-    select:focus {
-      border-color: #4f8cff;
-      box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.12);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .button {
-      border: 1px solid #303947;
-      border-radius: 9px;
-      padding: 10px 15px;
-      background: #141b25;
-      color: #e7edf5;
-      font-weight: 650;
-    }
-
-    .button:hover {
-      background: #1a2431;
-    }
-
-    .button.primary {
-      border-color: #2563eb;
-      background: #2563eb;
-      color: white;
-    }
-
-    .button.primary:hover {
-      background: #1d4ed8;
-    }
-
-    .button.danger {
-      border-color: #7f1d1d;
-      background: #3f171b;
-      color: #fecdd3;
-    }
-
-    .metric {
-      padding: 17px;
-    }
-
-    .metric-label {
-      color: #8190a2;
-      font-size: 12px;
-      font-weight: 650;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .metric-value {
-      margin-top: 8px;
-      font-size: 24px;
-      font-variant-numeric: tabular-nums;
-      font-weight: 750;
-    }
-
-    .positive {
-      color: #36d399;
-    }
-
-    .negative {
-      color: #fb7185;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      padding: 17px 18px;
-      border-bottom: 1px solid #222a35;
-    }
-
-    .panel-header h2 {
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .panel-meta {
-      color: #8190a2;
-      font-size: 12px;
-    }
-
-    .table-wrap {
-      overflow: auto;
-    }
-
-    table {
-      width: 100%;
-      min-width: 850px;
-      border-collapse: collapse;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid #1f2630;
-      padding: 12px 14px;
-      text-align: right;
-      font-size: 13px;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-    }
-
-    th:first-child,
-    td:first-child {
-      text-align: left;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: #111720;
-      color: #8290a3;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    tbody tr:hover {
-      background: rgba(79, 140, 255, 0.05);
-    }
-
-    .side-content {
-      padding: 16px;
-    }
-
-    .attribution-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
-      padding: 12px 0;
-      border-bottom: 1px solid #222a35;
-    }
-
-    .attribution-row:last-child {
-      border-bottom: 0;
-    }
-
-    .attribution-label {
-      color: #8d99aa;
-    }
-
-    .attribution-value {
-      font-variant-numeric: tabular-nums;
-      font-weight: 650;
-    }
-
-    .log {
-      height: 260px;
-      overflow: auto;
-      margin: 0;
-      padding: 14px;
-      border-top: 1px solid #222a35;
-      background: #080c12;
-      color: #8ea0b7;
-      font-family:
-        "SFMono-Regular",
-        Consolas,
-        monospace;
-      font-size: 12px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-    }
-
-    .empty {
-      padding: 30px;
-      color: #7e8998;
-      text-align: center;
-    }
-
-    @media (max-width: 1100px) {
-      .controls-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .metric-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 650px) {
-      .header {
-        flex-direction: column;
-      }
-
-      .controls-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .metric-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+    <link rel="stylesheet" href="/static/css/workbench.css">
 </head>
 
 <body>
-  <main class="shell">
+  
+    <aside
+      id="workbenchSidebar"
+      class="workbench-sidebar"
+    >
+      <div class="sidebar-brand">
+        <span class="sidebar-brand-mark">M</span>
+
+        <div>
+          <strong>Mercator</strong>
+          <span>Workbench</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a
+          class="sidebar-link active"
+          href="#workbench-top"
+        >
+          Overview
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="#market-overview"
+        >
+          Market Overview
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="#history"
+        >
+          Price History
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="#risk"
+        >
+          Risk Management
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="#operations"
+        >
+          Replay & Stream
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-status-dot"></span>
+        Market API
+      </div>
+    </aside>
+
+<main id="workbench-top" class="shell">
+
+<div
+    id="systemHealthBar"
+    class="system-health-bar"
+  >
+    <div class="system-health-item">
+      <span class="system-health-label">
+        API
+      </span>
+
+      <strong
+        id="systemHealthApi"
+        class="system-health-value"
+      >
+        Checking...
+      </strong>
+    </div>
+  
+
+  
+
+
+
+    <div class="system-health-item">
+      <span class="system-health-label">
+        Stream
+      </span>
+
+      <strong
+        id="systemHealthStream"
+        class="system-health-value"
+      >
+        —
+      </strong>
+    </div>
+
+    <div class="system-health-item">
+      <span class="system-health-label">
+        Clients
+      </span>
+
+      <strong
+        id="systemHealthClients"
+        class="system-health-value"
+      >
+        0
+      </strong>
+    </div>
+
+    <div class="system-health-item">
+      <span class="system-health-label">
+        Streamed
+      </span>
+
+      <strong
+        id="systemHealthStreamInstruments"
+        class="system-health-value"
+      >
+        0
+      </strong>
+    </div>
+
+    <div class="system-health-item">
+      <span class="system-health-label">
+        Sequence
+      </span>
+
+      <strong
+        id="systemHealthSequence"
+        class="system-health-value"
+      >
+        0
+      </strong>
+    </div>
+
+    <div class="system-health-item">
+      <span class="system-health-label">
+        Market Universe
+      </span>
+
+      <strong
+        id="systemHealthMarketCount"
+        class="system-health-value"
+      >
+        0
+      </strong>
+    </div>
+
+    <div class="system-health-item system-health-last">
+      <span class="system-health-label">
+        Last Refresh
+      </span>
+
+      <strong
+        id="systemHealthLastRefresh"
+        class="system-health-value"
+      >
+        —
+      </strong>
+    </div>
+
+    <button
+      id="refreshSystemHealthButton"
+      class="button system-health-refresh"
+      type="button"
+    >
+      Refresh
+    </button>
+  </div>
+
+<div
+    id="workspaceDisplayControls"
+    class="workspace-display-controls"
+  >
+    <span>Workspace</span>
+
+    <button
+      id="expandAllPanelsButton"
+      type="button"
+      class="button"
+    >
+      Expand All
+    </button>
+
+    <button
+      id="collapseAllPanelsButton"
+      type="button"
+      class="button"
+    >
+      Collapse All
+    </button>
+  </div>
+
+<div
+    id="workspacePresetControls"
+    class="workspace-preset-controls"
+  >
+    <div class="control preset-select-control">
+      <label for="workspacePresetSelect">
+        Workspace preset
+      </label>
+
+      <select id="workspacePresetSelect">
+        <option value="">
+          Custom
+        </option>
+
+        <option value="core-credit">
+          Core Credit
+        </option>
+
+        <option value="rates-heavy">
+          Rates Heavy
+        </option>
+
+        <option value="stress-basket">
+          Stress Test Basket
+        </option>
+
+        <option value="relative-value">
+          Relative Value Basket
+        </option>
+      </select>
+    </div>
+
+  
+
+  
+
+
+    <button
+      id="applyWorkspacePresetButton"
+      type="button"
+      class="button primary"
+    >
+      Apply Preset
+    </button>
+
+    <button
+      id="resetWorkspaceButton"
+      type="button"
+      class="button"
+    >
+      Reset Workspace
+    </button>
+  </div>
+
+
+  <div
+    id="instrumentSearch"
+    class="instrument-search"
+  >
+    <div class="instrument-search-label">
+      <span class="eyebrow">
+        Security Master
+      </span>
+
+      <strong>
+        Instrument Search
+      </strong>
+    </div>
+
+    <div class="instrument-search-box">
+      <input
+        id="instrumentSearchInput"
+        type="search"
+        autocomplete="off"
+        placeholder="Issuer, CUSIP, ISIN, or ticker..."
+      >
+
+      <button
+        id="instrumentSearchButton"
+        type="button"
+        class="button primary"
+      >
+        Search
+      </button>
+    </div>
+
+    <div
+      id="instrumentSearchResults"
+      class="instrument-search-results"
+      hidden
+    ></div>
+  </div>
+
+<div
+    id="portfolioSuiteControls"
+    class="portfolio-suite-controls"
+  >
+    <div>
+      <span class="portfolio-suite-eyebrow">
+        Portfolio Suite
+      </span>
+
+      <strong>
+        Consolidated Risk Snapshot
+      </strong>
+    </div>
+
+    <button
+      id="runPortfolioSuiteButton"
+      type="button"
+      class="button primary"
+    >
+      Run Portfolio Suite
+    </button>
+  </div>
+
+<div
+    id="portfolioSuiteSummary"
+    class="portfolio-suite-summary"
+  >
+    <div>
+      <span>Market Value</span>
+      <strong id="portfolioSuiteMarketValue">—</strong>
+    </div>
+
+    <div>
+      <span>DV01</span>
+      <strong id="portfolioSuiteDv01">—</strong>
+    </div>
+
+    <div>
+      <span>CS01</span>
+      <strong id="portfolioSuiteCs01">—</strong>
+    </div>
+
+    <div>
+      <span>Historical VaR</span>
+      <strong id="portfolioSuiteVar">—</strong>
+    </div>
+
+    <div>
+      <span>Residual DV01</span>
+      <strong id="portfolioSuiteResidualDv01">—</strong>
+    </div>
+
+    <div>
+      <span>Residual CS01</span>
+      <strong id="portfolioSuiteResidualCs01">—</strong>
+    </div>
+  </div>
+
+
+  
+
     <header class="header">
       <div>
         <div class="eyebrow">Mercator</div>
@@ -384,6 +372,16 @@
         <span id="connectionText">Disconnected</span>
       </div>
     </header>
+
+<div
+      id="scenario"
+      class="section-title workspace-section"
+    >
+      <h2>Scenario Analysis</h2>
+      <p>
+        Configure market shocks and evaluate portfolio impact.
+      </p>
+    </div>
 
     <section class="grid controls-grid">
       <div class="card control">
@@ -478,6 +476,16 @@
       </button>
     </section>
 
+    <div
+      id="overview"
+      class="section-title workspace-section"
+    >
+      <h2>Portfolio Overview</h2>
+      <p>
+        Current value, scenario results, and live stream status.
+      </p>
+    </div>
+
     <section class="grid metric-grid">
       <div class="card metric">
         <div class="metric-label">Portfolio market value</div>
@@ -504,6 +512,16 @@
         <div id="streamSequence" class="metric-value">0</div>
       </div>
     </section>
+
+    <div
+      id="positions"
+      class="section-title workspace-section"
+    >
+      <h2>Positions and Attribution</h2>
+      <p>
+        Live instrument prices, position values, and scenario P&amp;L.
+      </p>
+    </div>
 
     <section class="grid main-grid">
       <article class="card">
@@ -590,502 +608,2440 @@
         <pre id="eventLog" class="log"></pre>
       </aside>
     </section>
+
+    <div
+      id="optimization"
+      class="section-title workspace-section"
+    >
+      <h2>Portfolio Optimization</h2>
+      <p>
+        Standard allocation and risk-budget optimization.
+      </p>
+    </div>
+
+    <section class="feature-placeholder-grid">
+      <article class="card optimizer-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Standard Optimizer</h3>
+            <div
+              id="optimizerFreshness"
+              class="result-freshness"
+              data-result-key="optimizer"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+            <div class="panel-meta">
+              Allocate capital using carry, spread, or risk-adjusted scores.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="optimizer-controls">
+          <div class="control">
+            <label for="optimizerNotional">
+              Total notional
+            </label>
+
+            <input
+              id="optimizerNotional"
+              type="number"
+              value="10000000"
+              min="1"
+              step="100000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="optimizerMaxPosition">
+              Maximum position %
+            </label>
+
+            <input
+              id="optimizerMaxPosition"
+              type="number"
+              value="20"
+              min="0.01"
+              max="100"
+              step="1"
+            >
+          </div>
+
+          <div class="control">
+            <label for="optimizerObjective">
+              Objective
+            </label>
+
+            <select id="optimizerObjective">
+              <option value="risk_adjusted">
+                Risk adjusted
+              </option>
+
+              <option value="carry">
+                Carry
+              </option>
+
+              <option value="spread">
+                Spread
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runOptimizerButton"
+            class="button primary"
+          >
+            Run Optimization
+          </button>
+        </div>
+
+        <div class="optimizer-summary">
+          <div>
+            <span>Objective</span>
+            <strong id="optimizerResultObjective">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Total notional</span>
+            <strong id="optimizerResultNotional">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Allocated</span>
+            <strong id="optimizerAllocatedNotional">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Allocation count</span>
+            <strong id="optimizerAllocationCount">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Weight</th>
+                <th>Target notional</th>
+                <th>Expected score</th>
+              </tr>
+            </thead>
+
+            <tbody id="optimizerRows">
+              <tr>
+                <td colspan="4" class="empty">
+                  Run the optimizer to generate allocations.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="card optimizer-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Risk-Budget Optimizer</h3>
+            <div
+              id="riskOptimizerFreshness"
+              class="result-freshness"
+              data-result-key="riskOptimizer"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+            <div class="panel-meta">
+              Allocate capital within DV01, CS01, and concentration limits.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="risk-optimizer-controls">
+          <div class="control">
+            <label for="riskOptimizerNotional">
+              Total notional
+            </label>
+
+            <input
+              id="riskOptimizerNotional"
+              type="number"
+              value="10000000"
+              min="1"
+              step="100000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="riskOptimizerMaxPosition">
+              Maximum position %
+            </label>
+
+            <input
+              id="riskOptimizerMaxPosition"
+              type="number"
+              value="20"
+              min="0.01"
+              max="100"
+              step="1"
+            >
+          </div>
+
+          <div class="control">
+            <label for="riskOptimizerDv01">
+              Maximum portfolio DV01
+            </label>
+
+            <input
+              id="riskOptimizerDv01"
+              type="number"
+              value="100000"
+              min="0.01"
+              step="1000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="riskOptimizerCs01">
+              Maximum portfolio CS01
+            </label>
+
+            <input
+              id="riskOptimizerCs01"
+              type="number"
+              value="100000"
+              min="0.01"
+              step="1000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="riskOptimizerObjective">
+              Objective
+            </label>
+
+            <select id="riskOptimizerObjective">
+              <option value="risk_adjusted">
+                Risk adjusted
+              </option>
+
+              <option value="carry">
+                Carry
+              </option>
+
+              <option value="spread">
+                Spread
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runRiskOptimizerButton"
+            class="button primary"
+          >
+            Run Risk Optimization
+          </button>
+        </div>
+
+        <div class="risk-optimizer-summary">
+          <div>
+            <span>Invested notional</span>
+            <strong id="riskOptimizerInvested">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Cash remaining</span>
+            <strong id="riskOptimizerCash">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Invested percent</span>
+            <strong id="riskOptimizerInvestedPercent">
+              0%
+            </strong>
+          </div>
+
+          <div>
+            <span>Portfolio DV01</span>
+            <strong id="riskOptimizerPortfolioDv01">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Portfolio CS01</span>
+            <strong id="riskOptimizerPortfolioCs01">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Allocation count</span>
+            <strong id="riskOptimizerAllocationCount">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Weight</th>
+                <th>Target notional</th>
+                <th>Expected score</th>
+                <th>DV01</th>
+                <th>CS01</th>
+              </tr>
+            </thead>
+
+            <tbody id="riskOptimizerRows">
+              <tr>
+                <td colspan="6" class="empty">
+                  Run the risk optimizer to generate allocations.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    
+    <div id="operations" class="section-title workspace-section">
+      <div>
+        <span class="eyebrow">Operations</span>
+        <h2>Replay & Stream Control</h2>
+      </div>
+
+      <p>
+        Inspect available market replay scenarios and
+        control the simulated live market stream.
+      </p>
+    </div>
+
+    <section class="workspace-section">
+      <article class="card replay-stream-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Market Stream Control</h3>
+
+            <div class="panel-meta">
+              Start, stop, and inspect the current simulated market stream.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="replay-stream-controls">
+          <div class="control">
+            <label for="streamIntervalMs">
+              Interval (ms)
+            </label>
+
+            <input
+              id="streamIntervalMs"
+              type="number"
+              value="500"
+              min="100"
+              max="60000"
+              step="100"
+            >
+          </div>
+
+          <div class="control">
+            <label for="streamVolatilityBps">
+              Volatility (bp)
+            </label>
+
+            <input
+              id="streamVolatilityBps"
+              type="number"
+              value="2"
+              min="0"
+              max="100"
+              step="0.5"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="startMarketStreamButton"
+            class="button primary"
+          >
+            Start Stream
+          </button>
+
+          <button
+            id="stopMarketStreamButton"
+            class="button"
+          >
+            Stop Stream
+          </button>
+
+          <button
+            id="refreshMarketStreamStatusButton"
+            class="button"
+          >
+            Refresh Status
+          </button>
+        </div>
+
+        <div class="stream-status-summary">
+          <div>
+            <span>Status</span>
+            <strong id="streamStatusRunning">
+              Unknown
+            </strong>
+          </div>
+
+          <div>
+            <span>Clients</span>
+            <strong id="streamStatusClients">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Instruments</span>
+            <strong id="streamStatusInstruments">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Interval</span>
+            <strong id="streamStatusInterval">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Sequence</span>
+            <strong id="streamStatusSequence">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="panel-header replay-header">
+          <div>
+            <h3>Replay Scenarios</h3>
+
+            <div class="panel-meta">
+              Available recorded scenarios and their event ranges.
+            </div>
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="loadReplayScenariosButton"
+            class="button primary"
+          >
+            Load Replay Scenarios
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table replay-scenario-table">
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Events</th>
+                <th>First Event</th>
+                <th>Last Event</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+
+            <tbody id="replayScenarioRows">
+              <tr>
+                <td colspan="5" class="empty">
+                  Load replay scenarios to inspect available recordings.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <div id="market-overview" class="section-title workspace-section">
+      <div>
+        <span class="eyebrow">Market</span>
+        <h2>Market Overview</h2>
+      </div>
+
+      <p>
+        Browse the latest evaluated bond universe and
+        monitor aggregate market conditions.
+      </p>
+    </div>
+
+    <section class="workspace-section">
+      <article class="card market-overview-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Latest Bond Universe</h3>
+            <div
+              id="marketOverviewFreshness"
+              class="result-freshness"
+              data-result-key="marketOverview"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              Market snapshot from latest evaluated prices.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="market-overview-controls">
+          <div class="control">
+            <label for="marketOverviewLimit">
+              Instrument limit
+            </label>
+
+            <input
+              id="marketOverviewLimit"
+              type="number"
+              value="100"
+              min="1"
+              max="10000"
+              step="10"
+            >
+          </div>
+
+          <div class="control">
+            <label for="marketOverviewQuality">
+              Minimum quality score
+            </label>
+
+            <input
+              id="marketOverviewQuality"
+              type="number"
+              value="0.8"
+              min="0"
+              max="1"
+              step="0.05"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="loadMarketOverviewButton"
+            class="button primary"
+          >
+            Load Market Overview
+          </button>
+        </div>
+
+        <div class="market-overview-summary">
+          <div>
+            <span>Instruments</span>
+            <strong id="marketSummaryInstrumentCount">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Average Price</span>
+            <strong id="marketSummaryAveragePrice">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Average Yield</span>
+            <strong id="marketSummaryAverageYield">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Average Spread</span>
+            <strong id="marketSummaryAverageSpread">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Widest Instrument</span>
+            <strong id="marketSummaryWidestInstrument">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Widest Spread</span>
+            <strong id="marketSummaryWidestSpread">
+              —
+            </strong>
+          </div>
+        </div>
+
+        <div class="market-overview-toolbar">
+          <div class="control market-search-control">
+            <label for="marketOverviewSearch">
+              Filter loaded universe
+            </label>
+
+            <input
+              id="marketOverviewSearch"
+              type="text"
+              placeholder="Instrument ID, status, model version..."
+            >
+          </div>
+
+          <div class="market-overview-count">
+            <span>Rows shown</span>
+            <strong id="marketOverviewVisibleCount">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table market-overview-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Clean Price</th>
+                <th>Dirty Price</th>
+                <th>Yield</th>
+                <th>G-Spread</th>
+                <th>Duration</th>
+                <th>Convexity</th>
+                <th>Quality</th>
+                <th>Status</th>
+                <th>Curve</th>
+                <th>Reference</th>
+                <th>Event Time</th>
+              </tr>
+            </thead>
+
+            <tbody id="marketOverviewRows">
+              <tr>
+                <td colspan="12" class="empty">
+                  Load the market overview to browse
+                  the latest evaluated bond universe.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <div id="history" class="section-title workspace-section">
+      <div>
+        <span class="eyebrow">Market Data</span>
+        <h2>Price History Explorer</h2>
+      </div>
+
+      <p>
+        Inspect historical valuation, spread, duration,
+        quality, and model-version data.
+      </p>
+    </div>
+
+    <section class="workspace-section">
+      <article class="card price-history-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Instrument Price History</h3>
+            <div
+              id="priceHistoryFreshness"
+              class="result-freshness"
+              data-result-key="priceHistory"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              GET /prices/{instrument_id}/history
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="price-history-controls">
+          <div class="control">
+            <label for="priceHistoryInstrumentId">
+              Instrument ID
+            </label>
+
+            <input
+              id="priceHistoryInstrumentId"
+              type="number"
+              value="1"
+              min="1"
+              step="1"
+            >
+          </div>
+
+          <div class="control">
+            <label for="priceHistoryLimit">
+              History limit
+            </label>
+
+            <input
+              id="priceHistoryLimit"
+              type="number"
+              value="100"
+              min="1"
+              max="5000"
+              step="1"
+            >
+          </div>
+
+          <div class="control">
+            <label for="priceHistoryMetric">
+              Chart metric
+            </label>
+
+            <select id="priceHistoryMetric">
+              <option value="clean_price">
+                Clean Price
+              </option>
+
+              <option value="yield_to_maturity">
+                Yield to Maturity
+              </option>
+
+              <option value="g_spread_bps">
+                G-Spread
+              </option>
+
+              <option value="modified_duration">
+                Modified Duration
+              </option>
+
+              <option value="convexity">
+                Convexity
+              </option>
+
+              <option value="quality_score">
+                Quality Score
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runPriceHistoryButton"
+            class="button primary"
+          >
+            Load Price History
+          </button>
+        </div>
+
+        <div class="price-history-summary">
+          <div>
+            <span>Observations</span>
+            <strong id="priceHistoryObservationCount">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Latest Price</span>
+            <strong id="priceHistoryLatestPrice">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Latest Yield</span>
+            <strong id="priceHistoryLatestYield">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Latest Spread</span>
+            <strong id="priceHistoryLatestSpread">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Duration</span>
+            <strong id="priceHistoryLatestDuration">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Quality</span>
+            <strong id="priceHistoryLatestQuality">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Curve Version</span>
+            <strong id="priceHistoryCurveVersion">
+              —
+            </strong>
+          </div>
+
+          <div>
+            <span>Model Version</span>
+            <strong id="priceHistoryModelVersion">
+              —
+            </strong>
+          </div>
+        </div>
+
+        <div class="price-history-chart-panel">
+          <div class="subpanel-heading">
+            <span id="priceHistoryChartTitle">
+              Clean Price
+            </span>
+
+            <span id="priceHistoryChartRange">
+              No data
+            </span>
+          </div>
+
+          <div
+            id="priceHistoryChart"
+            class="price-history-chart"
+          >
+            <div class="price-history-empty">
+              Load an instrument to display its
+              historical series.
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table price-history-table">
+            <thead>
+              <tr>
+                <th>Event Time</th>
+                <th>Clean</th>
+                <th>Dirty</th>
+                <th>Yield</th>
+                <th>G-Spread</th>
+                <th>Duration</th>
+                <th>Convexity</th>
+                <th>Quality</th>
+                <th>Status</th>
+                <th>Curve</th>
+                <th>Reference</th>
+                <th>Model</th>
+              </tr>
+            </thead>
+
+            <tbody id="priceHistoryRows">
+              <tr>
+                <td colspan="12" class="empty">
+                  Load price history to inspect observations.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+<div
+      id="risk"
+      class="section-title workspace-section"
+    >
+      <h2>Risk Management</h2>
+      <p>
+        Portfolio risk measurements and recommended hedges.
+      </p>
+    </div>
+
+    <section class="feature-placeholder-grid">
+      
+      <article class="card historical-var-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Historical VaR and Expected Shortfall</h3>
+            <div
+              id="historicalVarFreshness"
+              class="result-freshness"
+              data-result-key="historicalVar"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+            <div class="panel-meta">
+              Estimate portfolio loss using historical Treasury and credit
+              shock scenarios.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="historical-var-controls">
+          <div class="control">
+            <label for="historicalVarPositionNotional">
+              Position notional per instrument
+            </label>
+
+            <input
+              id="historicalVarPositionNotional"
+              type="number"
+              value="1000000"
+              min="1"
+              max="1000000000"
+              step="100000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="historicalVarConfidence">
+              Confidence level
+            </label>
+
+            <select id="historicalVarConfidence">
+              <option value="0.95">95%</option>
+              <option value="0.975">97.5%</option>
+              <option value="0.99" selected>99%</option>
+              <option value="0.995">99.5%</option>
+              <option value="0.999">99.9%</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="historicalVarLookback">
+              Lookback days
+            </label>
+
+            <input
+              id="historicalVarLookback"
+              type="number"
+              value="250"
+              min="30"
+              max="5000"
+              step="10"
+            >
+          </div>
+
+          <div class="control">
+            <label for="historicalVarSeed">
+              Simulation seed
+            </label>
+
+            <input
+              id="historicalVarSeed"
+              type="number"
+              value="42"
+              min="0"
+              max="2147483647"
+              step="1"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runHistoricalVarButton"
+            class="button primary"
+          >
+            Run Historical VaR
+          </button>
+        </div>
+
+        <div class="historical-var-summary">
+          <div>
+            <span>Value at Risk</span>
+            <strong id="historicalVarValue">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Expected Shortfall</span>
+            <strong id="historicalVarExpectedShortfall">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Worst Historical Loss</span>
+            <strong id="historicalVarWorstLoss">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Total Market Value</span>
+            <strong id="historicalVarMarketValue">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Average Daily P&amp;L</span>
+            <strong id="historicalVarAveragePnl">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>P&amp;L Volatility</span>
+            <strong id="historicalVarVolatility">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Confidence</span>
+            <strong id="historicalVarConfidenceResult">
+              0%
+            </strong>
+          </div>
+
+          <div>
+            <span>Observations</span>
+            <strong id="historicalVarObservationCount">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="historical-var-grid">
+          <div class="historical-var-table-panel">
+            <div class="subpanel-heading">
+              Worst Historical Scenarios
+            </div>
+
+            <div class="table-wrap">
+              <table class="optimizer-table">
+                <thead>
+                  <tr>
+                    <th>Observation</th>
+                    <th>Treasury shock</th>
+                    <th>Credit shock</th>
+                    <th>Portfolio P&amp;L</th>
+                  </tr>
+                </thead>
+
+                <tbody id="historicalVarObservationRows">
+                  <tr>
+                    <td colspan="4" class="empty">
+                      Run Historical VaR to view loss scenarios.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="historical-var-table-panel">
+            <div class="subpanel-heading">
+              Instrument Risk Contributions
+            </div>
+
+            <div class="table-wrap">
+              <table class="optimizer-table">
+                <thead>
+                  <tr>
+                    <th>Instrument</th>
+                    <th>Market value</th>
+                    <th>DV01</th>
+                    <th>CS01</th>
+                    <th>VaR contribution</th>
+                  </tr>
+                </thead>
+
+                <tbody id="historicalVarContributionRows">
+                  <tr>
+                    <td colspan="5" class="empty">
+                      Run Historical VaR to view instrument contributions.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+      <article class="card hedge-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Hedge Recommendations</h3>
+            <div
+              id="hedgeRecommendationsFreshness"
+              class="result-freshness"
+              data-result-key="hedgeRecommendations"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              Generate Treasury key-rate hedges and an optional
+              credit-spread hedge for the selected portfolio.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="hedge-controls">
+          <div class="control">
+            <label for="hedgePositionNotional">
+              Position notional per instrument
+            </label>
+
+            <input
+              id="hedgePositionNotional"
+              type="number"
+              value="1000000"
+              min="1"
+              max="1000000000"
+              step="100000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="hedgeRatio">
+              Hedge ratio
+            </label>
+
+            <input
+              id="hedgeRatio"
+              type="number"
+              value="1"
+              min="0"
+              max="1.5"
+              step="0.05"
+            >
+          </div>
+
+          <div class="control hedge-credit-control">
+            <label>Credit hedge</label>
+
+            <label class="hedge-checkbox">
+              <input
+                id="includeCreditHedge"
+                type="checkbox"
+                checked
+              >
+
+              Include portfolio CS01 hedge
+            </label>
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runHedgeRecommendationsButton"
+            class="button primary"
+          >
+            Generate Hedges
+          </button>
+        </div>
+
+        <div class="hedge-summary">
+          <div>
+            <span>Market Value</span>
+            <strong id="hedgeMarketValue">$0</strong>
+          </div>
+
+          <div>
+            <span>Portfolio DV01</span>
+            <strong id="hedgeTotalDv01">0</strong>
+          </div>
+
+          <div>
+            <span>Portfolio CS01</span>
+            <strong id="hedgeTotalCs01">0</strong>
+          </div>
+
+          <div>
+            <span>Hedge Ratio</span>
+            <strong id="hedgeRatioResult">0%</strong>
+          </div>
+
+          <div>
+            <span>Residual DV01</span>
+            <strong id="hedgeResidualDv01">0</strong>
+          </div>
+
+          <div>
+            <span>Residual CS01</span>
+            <strong id="hedgeResidualCs01">0</strong>
+          </div>
+
+          <div>
+            <span>DV01 Reduction</span>
+            <strong id="hedgeDv01Reduction">0%</strong>
+          </div>
+
+          <div>
+            <span>CS01 Reduction</span>
+            <strong id="hedgeCs01Reduction">0%</strong>
+          </div>
+        </div>
+
+        <div class="hedge-results-grid">
+          <div class="hedge-result-panel">
+            <div class="subpanel-heading">
+              Treasury Key-Rate Hedges
+            </div>
+
+            <div class="table-wrap">
+              <table class="optimizer-table">
+                <thead>
+                  <tr>
+                    <th>Tenor</th>
+                    <th>Years</th>
+                    <th>Portfolio KRD</th>
+                    <th>Hedge DV01 / $1MM</th>
+                    <th>Recommended Notional</th>
+                  </tr>
+                </thead>
+
+                <tbody id="treasuryHedgeRows">
+                  <tr>
+                    <td colspan="5" class="empty">
+                      Generate recommendations to view Treasury hedges.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="hedge-result-panel">
+            <div class="subpanel-heading">
+              Credit Hedge
+            </div>
+
+            <div
+              id="creditHedgeResult"
+              class="credit-hedge-empty"
+            >
+              Generate recommendations to view the credit hedge.
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+      <article class="card relative-value-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Relative Value Screener</h3>
+
+            <div class="panel-meta">
+              Compare bond spreads against duration-matched peers and rank
+              cheap, rich, and fairly valued instruments.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="relative-value-controls">
+          <div class="control">
+            <label for="relativeValueBucketWidth">
+              Duration bucket width
+            </label>
+
+            <input
+              id="relativeValueBucketWidth"
+              type="number"
+              value="1.5"
+              min="0.1"
+              max="10"
+              step="0.1"
+            >
+          </div>
+
+          <div class="control">
+            <label for="relativeValueMinimumPeers">
+              Minimum peer count
+            </label>
+
+            <input
+              id="relativeValueMinimumPeers"
+              type="number"
+              value="3"
+              min="2"
+              max="100"
+              step="1"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runRelativeValueButton"
+            class="button primary"
+          >
+            Run Relative Value Screen
+          </button>
+        </div>
+
+        <div class="relative-value-summary">
+          <div>
+            <span>Instruments Analyzed</span>
+            <strong id="relativeValueInstrumentCount">0</strong>
+          </div>
+
+          <div>
+            <span>Opportunities</span>
+            <strong id="relativeValueOpportunityCount">0</strong>
+          </div>
+
+          <div>
+            <span>Average Spread</span>
+            <strong id="relativeValueAverageSpread">0 bp</strong>
+          </div>
+
+          <div>
+            <span>Average Duration</span>
+            <strong id="relativeValueAverageDuration">0</strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table relative-value-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Price</th>
+                <th>Yield</th>
+                <th>G-Spread</th>
+                <th>Duration</th>
+                <th>Peers</th>
+                <th>Peer Avg</th>
+                <th>Spread Diff</th>
+                <th>Z-Score</th>
+                <th>Classification</th>
+                <th>Conviction</th>
+              </tr>
+            </thead>
+
+            <tbody id="relativeValueRows">
+              <tr>
+                <td colspan="11" class="empty">
+                  Run the screener to rank relative-value opportunities.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+
+      <article class="card risk-decomposition-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Portfolio Risk Decomposition</h3>
+            <div
+              id="riskDecompositionFreshness"
+              class="result-freshness"
+              data-result-key="riskDecomposition"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              Break portfolio rate and credit risk into
+              key-rate and instrument-level exposures.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="risk-decomposition-controls">
+          <div class="control">
+            <label for="riskDecompositionNotional">
+              Position notional per instrument
+            </label>
+
+            <input
+              id="riskDecompositionNotional"
+              type="number"
+              value="1000000"
+              min="1"
+              max="1000000000"
+              step="100000"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runRiskDecompositionButton"
+            class="button primary"
+          >
+            Run Risk Decomposition
+          </button>
+        </div>
+
+        <div class="risk-decomposition-summary">
+          <div>
+            <span>Instruments</span>
+            <strong id="riskDecompositionInstrumentCount">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Market Value</span>
+            <strong id="riskDecompositionMarketValue">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Total DV01</span>
+            <strong id="riskDecompositionDv01">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Total CS01</span>
+            <strong id="riskDecompositionCs01">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="risk-decomposition-grid">
+          <div class="risk-decomposition-subpanel">
+            <div class="subpanel-heading">
+              Key-Rate DV01
+            </div>
+
+            <div class="table-wrap">
+              <table class="optimizer-table">
+                <thead>
+                  <tr>
+                    <th>Tenor</th>
+                    <th>Years</th>
+                    <th>Key-Rate Duration</th>
+                    <th>Key-Rate DV01</th>
+                    <th>% of DV01</th>
+                  </tr>
+                </thead>
+
+                <tbody id="riskDecompositionKeyRateRows">
+                  <tr>
+                    <td colspan="5" class="empty">
+                      Run decomposition to view
+                      key-rate exposures.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="risk-decomposition-subpanel">
+            <div class="subpanel-heading">
+              Instrument Risk
+            </div>
+
+            <div class="table-wrap">
+              <table class="optimizer-table">
+                <thead>
+                  <tr>
+                    <th>Instrument</th>
+                    <th>Price</th>
+                    <th>Spread</th>
+                    <th>Duration</th>
+                    <th>Market Value</th>
+                    <th>DV01</th>
+                    <th>CS01</th>
+                    <th>% of DV01</th>
+                  </tr>
+                </thead>
+
+                <tbody id="riskDecompositionInstrumentRows">
+                  <tr>
+                    <td colspan="8" class="empty">
+                      Run decomposition to view
+                      instrument-level risk.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+      <article class="card carry-roll-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Carry & Roll Opportunities</h3>
+            <div
+              id="carryRollFreshness"
+              class="result-freshness"
+              data-result-key="carryRoll"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              Rank bonds by expected carry, financing cost,
+              Treasury roll-down, and spread normalization.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="carry-roll-controls">
+          <div class="control">
+            <label for="carryRollHorizon">
+              Horizon
+            </label>
+
+            <select id="carryRollHorizon">
+              <option value="1">1 Month</option>
+              <option value="3" selected>3 Months</option>
+              <option value="6">6 Months</option>
+              <option value="12">12 Months</option>
+              <option value="24">24 Months</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="carryRollFinancingRate">
+              Annual financing rate
+            </label>
+
+            <input
+              id="carryRollFinancingRate"
+              type="number"
+              value="0.045"
+              min="-0.05"
+              max="0.25"
+              step="0.005"
+            >
+          </div>
+
+          <div class="control">
+            <label for="carryRollNormalization">
+              Spread normalization fraction
+            </label>
+
+            <input
+              id="carryRollNormalization"
+              type="number"
+              value="0.25"
+              min="0"
+              max="1"
+              step="0.05"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runCarryRollButton"
+            class="button primary"
+          >
+            Rank Carry & Roll
+          </button>
+        </div>
+
+        <div class="carry-roll-summary">
+          <div>
+            <span>Instruments</span>
+            <strong id="carryRollInstrumentCount">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Horizon</span>
+            <strong id="carryRollHorizonResult">
+              0M
+            </strong>
+          </div>
+
+          <div>
+            <span>Average Expected Return</span>
+            <strong id="carryRollAverageReturn">
+              0%
+            </strong>
+          </div>
+
+          <div>
+            <span>Top Opportunity</span>
+            <strong id="carryRollTopOpportunity">
+              —
+            </strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table carry-roll-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Price</th>
+                <th>Yield</th>
+                <th>Spread</th>
+                <th>Duration</th>
+                <th>Carry</th>
+                <th>Financing</th>
+                <th>Roll-Down</th>
+                <th>Roll Return</th>
+                <th>Spread Norm.</th>
+                <th>Total Return</th>
+                <th>P&L / $1MM</th>
+                <th>Classification</th>
+                <th>Conviction</th>
+              </tr>
+            </thead>
+
+            <tbody id="carryRollRows">
+              <tr>
+                <td colspan="14" class="empty">
+                  Run ranking to view carry and roll opportunities.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+
+      <article class="card stress-test-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Portfolio Stress Testing</h3>
+            <div
+              id="stressTestFreshness"
+              class="result-freshness"
+              data-result-key="stressTest"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              Apply Treasury curve and credit-spread shocks
+              to the selected portfolio.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="stress-test-controls">
+          <div class="control">
+            <label for="stressPositionNotional">
+              Position notional per instrument
+            </label>
+
+            <input
+              id="stressPositionNotional"
+              type="number"
+              value="1000000"
+              min="1"
+              max="1000000000"
+              step="100000"
+            >
+          </div>
+
+          <div class="control">
+            <label for="stressTreasuryParallel">
+              Treasury parallel shock (bp)
+            </label>
+
+            <input
+              id="stressTreasuryParallel"
+              type="number"
+              value="0"
+              min="-1000"
+              max="1000"
+              step="5"
+            >
+          </div>
+
+          <div class="control">
+            <label for="stressTreasury2Y">
+              2Y shock (bp)
+            </label>
+
+            <input
+              id="stressTreasury2Y"
+              type="number"
+              value="0"
+              min="-1000"
+              max="1000"
+              step="5"
+            >
+          </div>
+
+          <div class="control">
+            <label for="stressTreasury5Y">
+              5Y shock (bp)
+            </label>
+
+            <input
+              id="stressTreasury5Y"
+              type="number"
+              value="0"
+              min="-1000"
+              max="1000"
+              step="5"
+            >
+          </div>
+
+          <div class="control">
+            <label for="stressTreasury10Y">
+              10Y shock (bp)
+            </label>
+
+            <input
+              id="stressTreasury10Y"
+              type="number"
+              value="0"
+              min="-1000"
+              max="1000"
+              step="5"
+            >
+          </div>
+
+          <div class="control">
+            <label for="stressTreasury30Y">
+              30Y shock (bp)
+            </label>
+
+            <input
+              id="stressTreasury30Y"
+              type="number"
+              value="0"
+              min="-1000"
+              max="1000"
+              step="5"
+            >
+          </div>
+
+          <div class="control">
+            <label for="stressCreditParallel">
+              Credit parallel shock (bp)
+            </label>
+
+            <input
+              id="stressCreditParallel"
+              type="number"
+              value="0"
+              min="-2000"
+              max="2000"
+              step="5"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runStressTestButton"
+            class="button primary"
+          >
+            Run Stress Test
+          </button>
+        </div>
+
+        <div class="stress-test-summary">
+          <div>
+            <span>Instruments</span>
+            <strong id="stressInstrumentCount">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Market Value</span>
+            <strong id="stressMarketValue">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Treasury P&L</span>
+            <strong id="stressTreasuryPnl">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Credit P&L</span>
+            <strong id="stressCreditPnl">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Total P&L</span>
+            <strong id="stressTotalPnl">
+              $0
+            </strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table stress-test-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Market Value</th>
+                <th>Treasury P&L</th>
+                <th>Credit P&L</th>
+                <th>Total P&L</th>
+                <th>P&L %</th>
+              </tr>
+            </thead>
+
+            <tbody id="stressTestRows">
+              <tr>
+                <td colspan="6" class="empty">
+                  Run a stress test to view portfolio losses and gains.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+
+      <article class="card portfolio-risk-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Portfolio Risk Dashboard</h3>
+            <div
+              id="portfolioRiskFreshness"
+              class="result-freshness"
+              data-result-key="portfolioRisk"
+            >
+              <span class="result-freshness-dot"></span>
+              <span class="result-freshness-text">
+                Not calculated
+              </span>
+            </div>
+
+            <div class="panel-meta">
+              Aggregate portfolio yield, spread, duration,
+              convexity, market value, and DV01.
+            </div>
+          
+          </div>
+
+<button
+            type="button"
+            class="panel-collapse-button"
+            aria-expanded="true"
+            title="Collapse panel"
+          >
+            −
+          </button>
+        </div>
+
+        <div class="portfolio-risk-controls">
+          <div class="control">
+            <label for="portfolioRiskFaceValue">
+              Face value per instrument
+            </label>
+
+            <input
+              id="portfolioRiskFaceValue"
+              type="number"
+              value="1000000"
+              min="1"
+              max="1000000000"
+              step="100000"
+            >
+          </div>
+        </div>
+
+        <div class="optimizer-actions">
+          <button
+            id="runPortfolioRiskButton"
+            class="button primary"
+          >
+            Calculate Portfolio Risk
+          </button>
+        </div>
+
+        <div class="portfolio-risk-summary">
+          <div>
+            <span>Positions</span>
+            <strong id="portfolioRiskPositionCount">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Total Face Value</span>
+            <strong id="portfolioRiskTotalFaceValue">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Market Value</span>
+            <strong id="portfolioRiskMarketValue">
+              $0
+            </strong>
+          </div>
+
+          <div>
+            <span>Weighted Yield</span>
+            <strong id="portfolioRiskWeightedYield">
+              0%
+            </strong>
+          </div>
+
+          <div>
+            <span>Weighted Spread</span>
+            <strong id="portfolioRiskWeightedSpread">
+              0 bp
+            </strong>
+          </div>
+
+          <div>
+            <span>Weighted Duration</span>
+            <strong id="portfolioRiskWeightedDuration">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Weighted Convexity</span>
+            <strong id="portfolioRiskWeightedConvexity">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Total DV01</span>
+            <strong id="portfolioRiskTotalDv01">
+              0
+            </strong>
+          </div>
+
+          <div>
+            <span>Convexity Contribution</span>
+            <strong id="portfolioRiskConvexityContribution">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="optimizer-table portfolio-risk-table">
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Face Value</th>
+                <th>Price</th>
+                <th>Market Value</th>
+                <th>Yield</th>
+                <th>Spread</th>
+                <th>Duration</th>
+                <th>Convexity</th>
+                <th>DV01</th>
+                <th>Convexity Contrib.</th>
+                <th>Weight</th>
+              </tr>
+            </thead>
+
+            <tbody id="portfolioRiskRows">
+              <tr>
+                <td colspan="11" class="empty">
+                  Calculate portfolio risk to view position analytics.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+    </section>
+
   </main>
 
-  <script>
-    const state = {
-      socket: null,
-      prices: new Map(),
-      scenario: null,
-      sequence: 0,
-    };
-
-    const elements = {
-      instrumentIds: document.getElementById("instrumentIds"),
-      positionNotional: document.getElementById("positionNotional"),
-      treasuryShift: document.getElementById("treasuryShift"),
-      spreadShift: document.getElementById("spreadShift"),
-      liquidityHaircut: document.getElementById("liquidityHaircut"),
-      downgradeNotches: document.getElementById("downgradeNotches"),
-      connectionDot: document.getElementById("connectionDot"),
-      connectionText: document.getElementById("connectionText"),
-      marketValue: document.getElementById("marketValue"),
-      scenarioPnl: document.getElementById("scenarioPnl"),
-      treasuryPnl: document.getElementById("treasuryPnl"),
-      spreadPnl: document.getElementById("spreadPnl"),
-      streamSequence: document.getElementById("streamSequence"),
-      instrumentCount: document.getElementById("instrumentCount"),
-      instrumentRows: document.getElementById("instrumentRows"),
-      attributeTreasury: document.getElementById("attributeTreasury"),
-      attributeSpread: document.getElementById("attributeSpread"),
-      attributeLiquidity: document.getElementById("attributeLiquidity"),
-      attributeDowngrade: document.getElementById("attributeDowngrade"),
-      attributeTotal: document.getElementById("attributeTotal"),
-      eventLog: document.getElementById("eventLog"),
-      startButton: document.getElementById("startButton"),
-      stopButton: document.getElementById("stopButton"),
-      scenarioButton: document.getElementById("scenarioButton"),
-      exportButton: document.getElementById("exportButton"),
-    };
-
-    function parseInstrumentIds() {
-      return elements.instrumentIds.value
-        .split(",")
-        .map((value) => Number(value.trim()))
-        .filter((value) => Number.isInteger(value) && value > 0);
-    }
-
-    function currency(value) {
-      return new Intl.NumberFormat(
-        "en-US",
-        {
-          style: "currency",
-          currency: "USD",
-          maximumFractionDigits: 0,
-        },
-      ).format(Number(value || 0));
-    }
-
-    function number(value, digits = 4) {
-      return Number(value || 0).toLocaleString(
-        "en-US",
-        {
-          minimumFractionDigits: digits,
-          maximumFractionDigits: digits,
-        },
-      );
-    }
-
-    function percent(value) {
-      return `${(Number(value || 0) * 100).toFixed(3)}%`;
-    }
-
-    function setPnlClass(element, value) {
-      element.classList.remove("positive", "negative");
-
-      if (value > 0) {
-        element.classList.add("positive");
-      } else if (value < 0) {
-        element.classList.add("negative");
-      }
-    }
-
-    function log(message) {
-      const timestamp = new Date().toLocaleTimeString();
-      const line = `[${timestamp}] ${message}`;
-
-      elements.eventLog.textContent =
-        `${line}\n${elements.eventLog.textContent}`
-          .slice(0, 10000);
-    }
-
-    function setConnection(status, message) {
-      elements.connectionDot.className = `dot ${status}`;
-      elements.connectionText.textContent = message;
-    }
-
-    function scenarioByInstrument() {
-      const values = state.scenario?.instruments || [];
-
-      return new Map(
-        values.map((item) => [
-          item.instrument_id,
-          item,
-        ]),
-      );
-    }
-
-    function render() {
-      const positionNotional =
-        Number(elements.positionNotional.value || 0);
-
-      const marketValue = Array.from(state.prices.values())
-        .reduce(
-          (total, price) =>
-            total
-            + positionNotional
-            * Number(price.clean_price)
-            / 100,
-          0,
-        );
-
-      elements.marketValue.textContent = currency(marketValue);
-      elements.streamSequence.textContent =
-        state.sequence.toLocaleString();
-
-      const scenario = state.scenario || {
-        total_pnl: 0,
-        treasury_pnl: 0,
-        spread_pnl: 0,
-        liquidity_pnl: 0,
-        downgrade_pnl: 0,
-        instruments: [],
-      };
-
-      elements.scenarioPnl.textContent =
-        currency(scenario.total_pnl);
-
-      elements.treasuryPnl.textContent =
-        currency(scenario.treasury_pnl);
-
-      elements.spreadPnl.textContent =
-        currency(scenario.spread_pnl);
-
-      elements.attributeTreasury.textContent =
-        currency(scenario.treasury_pnl);
-
-      elements.attributeSpread.textContent =
-        currency(scenario.spread_pnl);
-
-      elements.attributeLiquidity.textContent =
-        currency(scenario.liquidity_pnl);
-
-      elements.attributeDowngrade.textContent =
-        currency(scenario.downgrade_pnl);
-
-      elements.attributeTotal.textContent =
-        currency(scenario.total_pnl);
-
-      [
-        [elements.scenarioPnl, scenario.total_pnl],
-        [elements.treasuryPnl, scenario.treasury_pnl],
-        [elements.spreadPnl, scenario.spread_pnl],
-        [elements.attributeTreasury, scenario.treasury_pnl],
-        [elements.attributeSpread, scenario.spread_pnl],
-        [elements.attributeLiquidity, scenario.liquidity_pnl],
-        [elements.attributeDowngrade, scenario.downgrade_pnl],
-        [elements.attributeTotal, scenario.total_pnl],
-      ].forEach(([element, value]) => {
-        setPnlClass(element, value);
-      });
-
-      const prices = Array.from(state.prices.values())
-        .sort(
-          (first, second) =>
-            first.instrument_id - second.instrument_id,
-        );
-
-      elements.instrumentCount.textContent =
-        `${prices.length} instrument${prices.length === 1 ? "" : "s"}`;
-
-      if (prices.length === 0) {
-        elements.instrumentRows.innerHTML = `
-          <tr>
-            <td colspan="8" class="empty">
-              Start the market stream to receive prices.
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      const scenarioMap = scenarioByInstrument();
-
-      elements.instrumentRows.innerHTML = prices
-        .map((price) => {
-          const result = scenarioMap.get(
-            price.instrument_id,
-          );
-
-          const pnl = Number(result?.pnl || 0);
-          const change = Number(price.price_change || 0);
-
-          return `
-            <tr>
-              <td>#${price.instrument_id}</td>
-              <td>${number(price.clean_price, 4)}</td>
-              <td class="${change >= 0 ? "positive" : "negative"}">
-                ${change >= 0 ? "+" : ""}${number(change, 5)}
-              </td>
-              <td>${percent(price.yield_to_maturity)}</td>
-              <td>${number(price.g_spread_bps, 2)} bp</td>
-              <td>${number(price.modified_duration, 3)}</td>
-              <td>
-                ${currency(
-                  positionNotional
-                  * Number(price.clean_price)
-                  / 100,
-                )}
-              </td>
-              <td class="${pnl >= 0 ? "positive" : "negative"}">
-                ${currency(pnl)}
-              </td>
-            </tr>
-          `;
-        })
-        .join("");
-    }
-
-    async function request(path, options = {}) {
-      const response = await fetch(path, options);
-
-      const text = await response.text();
-
-      let payload;
-
-      try {
-        payload = text ? JSON.parse(text) : {};
-      } catch {
-        payload = { detail: text };
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          payload.detail
-          || `Request failed with HTTP ${response.status}`,
-        );
-      }
-
-      return payload;
-    }
-
-    async function stopStreamSilently() {
-      try {
-        await request(
-          "/stream/stop",
-          {
-            method: "POST",
-          },
-        );
-      } catch {
-        // The stream may already be stopped.
-      }
-    }
-
-    function connectWebSocket() {
-      if (state.socket) {
-        state.socket.close();
-      }
-
-      const scheme =
-        window.location.protocol === "https:"
-          ? "wss"
-          : "ws";
-
-      const socketUrl =
-        `${scheme}://${window.location.host}/ws/market-data`;
-
-      const socket = new WebSocket(socketUrl);
-      state.socket = socket;
-
-      setConnection("", "Connecting");
-
-      socket.addEventListener(
-        "open",
-        () => {
-          setConnection("connected", "Live");
-          log("WebSocket connected");
-        },
-      );
-
-      socket.addEventListener(
-        "message",
-        (event) => {
-          const payload = JSON.parse(event.data);
-
-          if (payload.type === "connected") {
-            log(payload.message);
-            return;
-          }
-
-          if (payload.type !== "market_data") {
-            return;
-          }
-
-          state.sequence = payload.sequence;
-
-          for (const update of payload.updates) {
-            state.prices.set(
-              update.instrument_id,
-              update,
-            );
-          }
-
-          render();
-        },
-      );
-
-      socket.addEventListener(
-        "close",
-        () => {
-          setConnection("", "Disconnected");
-          log("WebSocket disconnected");
-        },
-      );
-
-      socket.addEventListener(
-        "error",
-        () => {
-          setConnection("error", "Connection error");
-          log("WebSocket connection error");
-        },
-      );
-    }
-
-    async function startStream() {
-      const instrumentIds = parseInstrumentIds();
-
-      if (instrumentIds.length === 0) {
-        throw new Error("Enter at least one instrument ID.");
-      }
-
-      await stopStreamSilently();
-
-      connectWebSocket();
-
-      await new Promise(
-        (resolve) => setTimeout(resolve, 250),
-      );
-
-      const status = await request(
-        "/stream/start",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instrument_ids: instrumentIds,
-            interval_ms: 500,
-            volatility_bps: 2,
-          }),
-        },
-      );
-
-      log(
-        `Stream started for ${status.instrument_count} instruments`,
-      );
-    }
-
-    async function stopStream() {
-      const status = await request(
-        "/stream/stop",
-        {
-          method: "POST",
-        },
-      );
-
-      if (state.socket) {
-        state.socket.close();
-        state.socket = null;
-      }
-
-      setConnection("", "Stopped");
-      log(`Stream stopped; running=${status.running}`);
-    }
-
-    async function runScenario() {
-      const payload = await request(
-        "/risk/scenario-analysis",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instrument_ids: parseInstrumentIds(),
-            position_notional:
-              Number(elements.positionNotional.value),
-            treasury_shift_bps:
-              Number(elements.treasuryShift.value),
-            spread_shift_bps:
-              Number(elements.spreadShift.value),
-            liquidity_haircut_percent:
-              Number(elements.liquidityHaircut.value),
-            downgrade_notches:
-              Number(elements.downgradeNotches.value),
-          }),
-        },
-      );
-
-      state.scenario = payload;
-      render();
-
-      log(
-        `Scenario completed: total P&L ${currency(
-          payload.total_pnl,
-        )}`,
-      );
-    }
-
-    function exportSnapshot() {
-      const snapshot = {
-        exported_at: new Date().toISOString(),
-        sequence: state.sequence,
-        controls: {
-          instrument_ids: parseInstrumentIds(),
-          position_notional:
-            Number(elements.positionNotional.value),
-          treasury_shift_bps:
-            Number(elements.treasuryShift.value),
-          spread_shift_bps:
-            Number(elements.spreadShift.value),
-          liquidity_haircut_percent:
-            Number(elements.liquidityHaircut.value),
-          downgrade_notches:
-            Number(elements.downgradeNotches.value),
-        },
-        prices: Array.from(state.prices.values()),
-        scenario: state.scenario,
-      };
-
-      const blob = new Blob(
-        [JSON.stringify(snapshot, null, 2)],
-        {
-          type: "application/json",
-        },
-      );
-
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-
-      anchor.href = url;
-      anchor.download =
-        `mercator-snapshot-${Date.now()}.json`;
-
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-
-      URL.revokeObjectURL(url);
-      log("Snapshot exported");
-    }
-
-    async function handleAction(action) {
-      try {
-        await action();
-      } catch (error) {
-        log(`ERROR: ${error.message}`);
-        setConnection("error", "Request failed");
-      }
-    }
-
-    elements.startButton.addEventListener(
-      "click",
-      () => handleAction(startStream),
-    );
-
-    elements.stopButton.addEventListener(
-      "click",
-      () => handleAction(stopStream),
-    );
-
-    elements.scenarioButton.addEventListener(
-      "click",
-      () => handleAction(runScenario),
-    );
-
-    elements.exportButton.addEventListener(
-      "click",
-      exportSnapshot,
-    );
-
-    elements.positionNotional.addEventListener(
-      "input",
-      render,
-    );
-
-    render();
-  </script>
+    <script src="/static/js/core.js"></script>
+  <script src="/static/js/portfolio.js"></script>
+  <script src="/static/js/market.js"></script>
+  <script src="/static/js/risk.js"></script>
+  <script src="/static/js/operations.js"></script>
+  <script src="/static/js/bootstrap.js"></script>
+
+  <div
+    id="commandPalette"
+    class="command-palette-overlay"
+    hidden
+  >
+    <div
+      class="command-palette"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mercator command palette"
+    >
+      <div class="command-palette-search">
+        <span>⌘K</span>
+
+        <input
+          id="commandPaletteInput"
+          type="text"
+          autocomplete="off"
+          placeholder="Search actions..."
+        >
+
+        <kbd>Esc</kbd>
+      </div>
+
+      <div
+        id="commandPaletteResults"
+        class="command-palette-results"
+      ></div>
+
+      <div class="command-palette-footer">
+        <span>
+          ↑ ↓ navigate
+        </span>
+
+        <span>
+          ↵ select
+        </span>
+
+        <span>
+          esc close
+        </span>
+      </div>
+    </div>
+  </div>
+
+
+  <div
+    id="toastContainer"
+    class="toast-container"
+    aria-live="polite"
+    aria-atomic="false"
+  ></div>
+
+
+  <div
+    id="instrumentDrawerBackdrop"
+    class="instrument-drawer-backdrop"
+    hidden
+  ></div>
+
+  <aside
+    id="instrumentDrawer"
+    class="instrument-drawer"
+    aria-label="Instrument details"
+    aria-hidden="true"
+  >
+    <div class="instrument-drawer-header">
+      <div>
+        <span class="eyebrow">
+          Instrument
+        </span>
+
+        <h2 id="instrumentDrawerTitle">
+          —
+        </h2>
+
+        <span
+          id="instrumentDrawerTimestamp"
+          class="instrument-drawer-timestamp"
+        >
+          —
+        </span>
+      </div>
+
+      <button
+        id="closeInstrumentDrawerButton"
+        type="button"
+        class="instrument-drawer-close"
+        aria-label="Close instrument details"
+      >
+        ×
+      </button>
+    </div>
+
+    <div
+      id="instrumentDrawerLoading"
+      class="instrument-drawer-loading"
+      hidden
+    >
+      Loading instrument analytics...
+    </div>
+
+    <div id="instrumentDrawerContent">
+
+      <section class="instrument-drawer-section">
+        <h3>Reference Data</h3>
+
+        <div class="instrument-drawer-grid">
+          <div class="instrument-drawer-wide">
+            <span>Issuer</span>
+            <strong id="drawerIssuer">—</strong>
+          </div>
+
+          <div>
+            <span>CUSIP</span>
+            <strong id="drawerCusip">—</strong>
+          </div>
+
+          <div>
+            <span>ISIN</span>
+            <strong id="drawerIsin">—</strong>
+          </div>
+
+          <div>
+            <span>Ticker</span>
+            <strong id="drawerTicker">—</strong>
+          </div>
+
+          <div>
+            <span>Type</span>
+            <strong id="drawerInstrumentType">—</strong>
+          </div>
+
+          <div>
+            <span>Coupon</span>
+            <strong id="drawerCoupon">—</strong>
+          </div>
+
+          <div>
+            <span>Maturity</span>
+            <strong id="drawerMaturity">—</strong>
+          </div>
+
+          <div>
+            <span>Rating</span>
+            <strong id="drawerRating">—</strong>
+          </div>
+
+          <div>
+            <span>Sector</span>
+            <strong id="drawerSector">—</strong>
+          </div>
+
+          <div>
+            <span>Currency</span>
+            <strong id="drawerCurrency">—</strong>
+          </div>
+
+          <div class="instrument-drawer-wide">
+            <span>Reference Source</span>
+            <strong id="drawerReferenceSource">—</strong>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="instrument-drawer-section">
+        <h3>Valuation</h3>
+
+        <div class="instrument-drawer-grid">
+          <div>
+            <span>Clean Price</span>
+            <strong id="drawerCleanPrice">—</strong>
+          </div>
+
+          <div>
+            <span>Dirty Price</span>
+            <strong id="drawerDirtyPrice">—</strong>
+          </div>
+
+          <div>
+            <span>Yield</span>
+            <strong id="drawerYield">—</strong>
+          </div>
+
+          <div>
+            <span>G-Spread</span>
+            <strong id="drawerSpread">—</strong>
+          </div>
+
+          <div>
+            <span>Duration</span>
+            <strong id="drawerDuration">—</strong>
+          </div>
+
+          <div>
+            <span>Convexity</span>
+            <strong id="drawerConvexity">—</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="instrument-drawer-section">
+        <h3>Risk</h3>
+
+        <div class="instrument-drawer-grid">
+          <div>
+            <span>Market Value</span>
+            <strong id="drawerMarketValue">—</strong>
+          </div>
+
+          <div>
+            <span>DV01</span>
+            <strong id="drawerDv01">—</strong>
+          </div>
+
+          <div>
+            <span>CS01</span>
+            <strong id="drawerCs01">—</strong>
+          </div>
+
+          <div>
+            <span>Notional</span>
+            <strong id="drawerNotional">—</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="instrument-drawer-section">
+        <h3>Key-Rate Exposure</h3>
+
+        <div class="table-wrap">
+          <table class="instrument-drawer-table">
+            <thead>
+              <tr>
+                <th>Tenor</th>
+                <th>KRD</th>
+                <th>DV01</th>
+              </tr>
+            </thead>
+
+            <tbody id="drawerKeyRateRows">
+              <tr>
+                <td colspan="3" class="empty">
+                  No risk data loaded.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="instrument-drawer-section">
+        <h3>Data Quality & Lineage</h3>
+
+        <div class="instrument-drawer-grid">
+          <div>
+            <span>Quality</span>
+            <strong id="drawerQuality">—</strong>
+          </div>
+
+          <div>
+            <span>Status</span>
+            <strong id="drawerQualityStatus">—</strong>
+          </div>
+
+          <div>
+            <span>Curve Version</span>
+            <strong id="drawerCurveVersion">—</strong>
+          </div>
+
+          <div>
+            <span>Reference Version</span>
+            <strong id="drawerReferenceVersion">—</strong>
+          </div>
+
+          <div class="instrument-drawer-wide">
+            <span>Model Version</span>
+            <strong id="drawerModelVersion">—</strong>
+          </div>
+        </div>
+      </section>
+
+      <div class="instrument-drawer-actions">
+        <button
+          id="drawerAddToBasketButton"
+          type="button"
+          class="button primary"
+        >
+          Add to Basket
+        </button>
+
+        <button
+          id="drawerOpenHistoryButton"
+          type="button"
+          class="button"
+        >
+          Price History
+        </button>
+
+        <button
+          id="drawerUseRiskButton"
+          type="button"
+          class="button"
+        >
+          Risk Decomposition
+        </button>
+
+        <button
+          id="drawerUseStressButton"
+          type="button"
+          class="button"
+        >
+          Stress Test
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
 </body>
 </html>

@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+  <title>Mercator Portfolio Workbench</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      background: #0a0d12;
+      color: #e7edf5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(59, 130, 246, 0.12),
+          transparent 35%
+        ),
+        #0a0d12;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1500px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 48px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      color: #6ea8fe;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 6px 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #8c98a8;
+    }
+
+    .connection {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #252c37;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #10151d;
+      color: #aab4c3;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #64748b;
+    }
+
+    .dot.connected {
+      background: #36d399;
+      box-shadow: 0 0 10px rgba(54, 211, 153, 0.7);
+    }
+
+    .dot.error {
+      background: #fb7185;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .controls-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      margin-bottom: 16px;
+    }
+
+    .metric-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 16px;
+    }
+
+    .main-grid {
+      grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.75fr);
+    }
+
+    .card {
+      border: 1px solid #222a35;
+      border-radius: 14px;
+      background: rgba(15, 20, 28, 0.93);
+      box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .control {
+      padding: 14px;
+    }
+
+    .control label {
+      display: block;
+      margin-bottom: 7px;
+      color: #8591a1;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #303947;
+      border-radius: 9px;
+      padding: 10px 11px;
+      background: #0b1017;
+      color: #e7edf5;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #4f8cff;
+      box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.12);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .button {
+      border: 1px solid #303947;
+      border-radius: 9px;
+      padding: 10px 15px;
+      background: #141b25;
+      color: #e7edf5;
+      font-weight: 650;
+    }
+
+    .button:hover {
+      background: #1a2431;
+    }
+
+    .button.primary {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: white;
+    }
+
+    .button.primary:hover {
+      background: #1d4ed8;
+    }
+
+    .button.danger {
+      border-color: #7f1d1d;
+      background: #3f171b;
+      color: #fecdd3;
+    }
+
+    .metric {
+      padding: 17px;
+    }
+
+    .metric-label {
+      color: #8190a2;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin-top: 8px;
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 750;
+    }
+
+    .positive {
+      color: #36d399;
+    }
+
+    .negative {
+      color: #fb7185;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 17px 18px;
+      border-bottom: 1px solid #222a35;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .panel-meta {
+      color: #8190a2;
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 850px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #1f2630;
+      padding: 12px 14px;
+      text-align: right;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #111720;
+      color: #8290a3;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    tbody tr:hover {
+      background: rgba(79, 140, 255, 0.05);
+    }
+
+    .side-content {
+      padding: 16px;
+    }
+
+    .attribution-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid #222a35;
+    }
+
+    .attribution-row:last-child {
+      border-bottom: 0;
+    }
+
+    .attribution-label {
+      color: #8d99aa;
+    }
+
+    .attribution-value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+    }
+
+    .log {
+      height: 260px;
+      overflow: auto;
+      margin: 0;
+      padding: 14px;
+      border-top: 1px solid #222a35;
+      background: #080c12;
+      color: #8ea0b7;
+      font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .empty {
+      padding: 30px;
+      color: #7e8998;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .controls-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .header {
+        flex-direction: column;
+      }
+
+      .controls-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+    <header class="header">
+      <div>
+        <div class="eyebrow">Mercator</div>
+        <h1>Portfolio Workbench</h1>
+        <p class="subtitle">
+          Live fixed-income pricing, scenario analysis, and risk attribution.
+        </p>
+      </div>
+
+      <div class="connection">
+        <span id="connectionDot" class="dot"></span>
+        <span id="connectionText">Disconnected</span>
+      </div>
+    </header>
+
+    <section class="grid controls-grid">
+      <div class="card control">
+        <label for="instrumentIds">Instrument IDs</label>
+        <input
+          id="instrumentIds"
+          value="1,2,3,4,5"
+        >
+      </div>
+
+      <div class="card control">
+        <label for="positionNotional">Notional per bond</label>
+        <input
+          id="positionNotional"
+          type="number"
+          value="1000000"
+          min="1"
+        >
+      </div>
+
+      <div class="card control">
+        <label for="treasuryShift">Treasury shift</label>
+        <input
+          id="treasuryShift"
+          type="number"
+          value="50"
+          step="1"
+        >
+      </div>
+
+      <div class="card control">
+        <label for="spreadShift">Spread shift</label>
+        <input
+          id="spreadShift"
+          type="number"
+          value="25"
+          step="1"
+        >
+      </div>
+
+      <div class="card control">
+        <label for="liquidityHaircut">Liquidity haircut %</label>
+        <input
+          id="liquidityHaircut"
+          type="number"
+          value="2"
+          min="0"
+          max="100"
+          step="0.1"
+        >
+      </div>
+
+      <div class="card control">
+        <label for="downgradeNotches">Downgrade notches</label>
+        <input
+          id="downgradeNotches"
+          type="number"
+          value="1"
+          min="0"
+          max="5"
+        >
+      </div>
+    </section>
+
+    <section class="actions">
+      <button
+        id="startButton"
+        class="button primary"
+      >
+        Start Live Stream
+      </button>
+
+      <button
+        id="stopButton"
+        class="button danger"
+      >
+        Stop Stream
+      </button>
+
+      <button
+        id="scenarioButton"
+        class="button"
+      >
+        Run Scenario
+      </button>
+
+      <button
+        id="exportButton"
+        class="button"
+      >
+        Export Snapshot
+      </button>
+    </section>
+
+    <section class="grid metric-grid">
+      <div class="card metric">
+        <div class="metric-label">Portfolio market value</div>
+        <div id="marketValue" class="metric-value">$0</div>
+      </div>
+
+      <div class="card metric">
+        <div class="metric-label">Scenario P&amp;L</div>
+        <div id="scenarioPnl" class="metric-value">$0</div>
+      </div>
+
+      <div class="card metric">
+        <div class="metric-label">Treasury P&amp;L</div>
+        <div id="treasuryPnl" class="metric-value">$0</div>
+      </div>
+
+      <div class="card metric">
+        <div class="metric-label">Spread P&amp;L</div>
+        <div id="spreadPnl" class="metric-value">$0</div>
+      </div>
+
+      <div class="card metric">
+        <div class="metric-label">Stream sequence</div>
+        <div id="streamSequence" class="metric-value">0</div>
+      </div>
+    </section>
+
+    <section class="grid main-grid">
+      <article class="card">
+        <div class="panel-header">
+          <h2>Live instruments</h2>
+          <span id="instrumentCount" class="panel-meta">
+            0 instruments
+          </span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Instrument</th>
+                <th>Clean price</th>
+                <th>Change</th>
+                <th>Yield</th>
+                <th>Spread</th>
+                <th>Duration</th>
+                <th>Market value</th>
+                <th>Scenario P&amp;L</th>
+              </tr>
+            </thead>
+
+            <tbody id="instrumentRows">
+              <tr>
+                <td colspan="8" class="empty">
+                  Start the market stream to receive prices.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <aside class="card">
+        <div class="panel-header">
+          <h2>Scenario attribution</h2>
+          <span class="panel-meta">Live snapshot</span>
+        </div>
+
+        <div class="side-content">
+          <div class="attribution-row">
+            <span class="attribution-label">Treasury</span>
+            <span id="attributeTreasury" class="attribution-value">
+              $0
+            </span>
+          </div>
+
+          <div class="attribution-row">
+            <span class="attribution-label">Spread</span>
+            <span id="attributeSpread" class="attribution-value">
+              $0
+            </span>
+          </div>
+
+          <div class="attribution-row">
+            <span class="attribution-label">Liquidity</span>
+            <span id="attributeLiquidity" class="attribution-value">
+              $0
+            </span>
+          </div>
+
+          <div class="attribution-row">
+            <span class="attribution-label">Downgrade</span>
+            <span id="attributeDowngrade" class="attribution-value">
+              $0
+            </span>
+          </div>
+
+          <div class="attribution-row">
+            <span class="attribution-label">Total</span>
+            <span id="attributeTotal" class="attribution-value">
+              $0
+            </span>
+          </div>
+        </div>
+
+        <div class="panel-header">
+          <h2>Event log</h2>
+        </div>
+
+        <pre id="eventLog" class="log"></pre>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      socket: null,
+      prices: new Map(),
+      scenario: null,
+      sequence: 0,
+    };
+
+    const elements = {
+      instrumentIds: document.getElementById("instrumentIds"),
+      positionNotional: document.getElementById("positionNotional"),
+      treasuryShift: document.getElementById("treasuryShift"),
+      spreadShift: document.getElementById("spreadShift"),
+      liquidityHaircut: document.getElementById("liquidityHaircut"),
+      downgradeNotches: document.getElementById("downgradeNotches"),
+      connectionDot: document.getElementById("connectionDot"),
+      connectionText: document.getElementById("connectionText"),
+      marketValue: document.getElementById("marketValue"),
+      scenarioPnl: document.getElementById("scenarioPnl"),
+      treasuryPnl: document.getElementById("treasuryPnl"),
+      spreadPnl: document.getElementById("spreadPnl"),
+      streamSequence: document.getElementById("streamSequence"),
+      instrumentCount: document.getElementById("instrumentCount"),
+      instrumentRows: document.getElementById("instrumentRows"),
+      attributeTreasury: document.getElementById("attributeTreasury"),
+      attributeSpread: document.getElementById("attributeSpread"),
+      attributeLiquidity: document.getElementById("attributeLiquidity"),
+      attributeDowngrade: document.getElementById("attributeDowngrade"),
+      attributeTotal: document.getElementById("attributeTotal"),
+      eventLog: document.getElementById("eventLog"),
+      startButton: document.getElementById("startButton"),
+      stopButton: document.getElementById("stopButton"),
+      scenarioButton: document.getElementById("scenarioButton"),
+      exportButton: document.getElementById("exportButton"),
+    };
+
+    function parseInstrumentIds() {
+      return elements.instrumentIds.value
+        .split(",")
+        .map((value) => Number(value.trim()))
+        .filter((value) => Number.isInteger(value) && value > 0);
+    }
+
+    function currency(value) {
+      return new Intl.NumberFormat(
+        "en-US",
+        {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        },
+      ).format(Number(value || 0));
+    }
+
+    function number(value, digits = 4) {
+      return Number(value || 0).toLocaleString(
+        "en-US",
+        {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        },
+      );
+    }
+
+    function percent(value) {
+      return `${(Number(value || 0) * 100).toFixed(3)}%`;
+    }
+
+    function setPnlClass(element, value) {
+      element.classList.remove("positive", "negative");
+
+      if (value > 0) {
+        element.classList.add("positive");
+      } else if (value < 0) {
+        element.classList.add("negative");
+      }
+    }
+
+    function log(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      const line = `[${timestamp}] ${message}`;
+
+      elements.eventLog.textContent =
+        `${line}\n${elements.eventLog.textContent}`
+          .slice(0, 10000);
+    }
+
+    function setConnection(status, message) {
+      elements.connectionDot.className = `dot ${status}`;
+      elements.connectionText.textContent = message;
+    }
+
+    function scenarioByInstrument() {
+      const values = state.scenario?.instruments || [];
+
+      return new Map(
+        values.map((item) => [
+          item.instrument_id,
+          item,
+        ]),
+      );
+    }
+
+    function render() {
+      const positionNotional =
+        Number(elements.positionNotional.value || 0);
+
+      const marketValue = Array.from(state.prices.values())
+        .reduce(
+          (total, price) =>
+            total
+            + positionNotional
+            * Number(price.clean_price)
+            / 100,
+          0,
+        );
+
+      elements.marketValue.textContent = currency(marketValue);
+      elements.streamSequence.textContent =
+        state.sequence.toLocaleString();
+
+      const scenario = state.scenario || {
+        total_pnl: 0,
+        treasury_pnl: 0,
+        spread_pnl: 0,
+        liquidity_pnl: 0,
+        downgrade_pnl: 0,
+        instruments: [],
+      };
+
+      elements.scenarioPnl.textContent =
+        currency(scenario.total_pnl);
+
+      elements.treasuryPnl.textContent =
+        currency(scenario.treasury_pnl);
+
+      elements.spreadPnl.textContent =
+        currency(scenario.spread_pnl);
+
+      elements.attributeTreasury.textContent =
+        currency(scenario.treasury_pnl);
+
+      elements.attributeSpread.textContent =
+        currency(scenario.spread_pnl);
+
+      elements.attributeLiquidity.textContent =
+        currency(scenario.liquidity_pnl);
+
+      elements.attributeDowngrade.textContent =
+        currency(scenario.downgrade_pnl);
+
+      elements.attributeTotal.textContent =
+        currency(scenario.total_pnl);
+
+      [
+        [elements.scenarioPnl, scenario.total_pnl],
+        [elements.treasuryPnl, scenario.treasury_pnl],
+        [elements.spreadPnl, scenario.spread_pnl],
+        [elements.attributeTreasury, scenario.treasury_pnl],
+        [elements.attributeSpread, scenario.spread_pnl],
+        [elements.attributeLiquidity, scenario.liquidity_pnl],
+        [elements.attributeDowngrade, scenario.downgrade_pnl],
+        [elements.attributeTotal, scenario.total_pnl],
+      ].forEach(([element, value]) => {
+        setPnlClass(element, value);
+      });
+
+      const prices = Array.from(state.prices.values())
+        .sort(
+          (first, second) =>
+            first.instrument_id - second.instrument_id,
+        );
+
+      elements.instrumentCount.textContent =
+        `${prices.length} instrument${prices.length === 1 ? "" : "s"}`;
+
+      if (prices.length === 0) {
+        elements.instrumentRows.innerHTML = `
+          <tr>
+            <td colspan="8" class="empty">
+              Start the market stream to receive prices.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const scenarioMap = scenarioByInstrument();
+
+      elements.instrumentRows.innerHTML = prices
+        .map((price) => {
+          const result = scenarioMap.get(
+            price.instrument_id,
+          );
+
+          const pnl = Number(result?.pnl || 0);
+          const change = Number(price.price_change || 0);
+
+          return `
+            <tr>
+              <td>#${price.instrument_id}</td>
+              <td>${number(price.clean_price, 4)}</td>
+              <td class="${change >= 0 ? "positive" : "negative"}">
+                ${change >= 0 ? "+" : ""}${number(change, 5)}
+              </td>
+              <td>${percent(price.yield_to_maturity)}</td>
+              <td>${number(price.g_spread_bps, 2)} bp</td>
+              <td>${number(price.modified_duration, 3)}</td>
+              <td>
+                ${currency(
+                  positionNotional
+                  * Number(price.clean_price)
+                  / 100,
+                )}
+              </td>
+              <td class="${pnl >= 0 ? "positive" : "negative"}">
+                ${currency(pnl)}
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    async function request(path, options = {}) {
+      const response = await fetch(path, options);
+
+      const text = await response.text();
+
+      let payload;
+
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch {
+        payload = { detail: text };
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          payload.detail
+          || `Request failed with HTTP ${response.status}`,
+        );
+      }
+
+      return payload;
+    }
+
+    async function stopStreamSilently() {
+      try {
+        await request(
+          "/stream/stop",
+          {
+            method: "POST",
+          },
+        );
+      } catch {
+        // The stream may already be stopped.
+      }
+    }
+
+    function connectWebSocket() {
+      if (state.socket) {
+        state.socket.close();
+      }
+
+      const scheme =
+        window.location.protocol === "https:"
+          ? "wss"
+          : "ws";
+
+      const socketUrl =
+        `${scheme}://${window.location.host}/ws/market-data`;
+
+      const socket = new WebSocket(socketUrl);
+      state.socket = socket;
+
+      setConnection("", "Connecting");
+
+      socket.addEventListener(
+        "open",
+        () => {
+          setConnection("connected", "Live");
+          log("WebSocket connected");
+        },
+      );
+
+      socket.addEventListener(
+        "message",
+        (event) => {
+          const payload = JSON.parse(event.data);
+
+          if (payload.type === "connected") {
+            log(payload.message);
+            return;
+          }
+
+          if (payload.type !== "market_data") {
+            return;
+          }
+
+          state.sequence = payload.sequence;
+
+          for (const update of payload.updates) {
+            state.prices.set(
+              update.instrument_id,
+              update,
+            );
+          }
+
+          render();
+        },
+      );
+
+      socket.addEventListener(
+        "close",
+        () => {
+          setConnection("", "Disconnected");
+          log("WebSocket disconnected");
+        },
+      );
+
+      socket.addEventListener(
+        "error",
+        () => {
+          setConnection("error", "Connection error");
+          log("WebSocket connection error");
+        },
+      );
+    }
+
+    async function startStream() {
+      const instrumentIds = parseInstrumentIds();
+
+      if (instrumentIds.length === 0) {
+        throw new Error("Enter at least one instrument ID.");
+      }
+
+      await stopStreamSilently();
+
+      connectWebSocket();
+
+      await new Promise(
+        (resolve) => setTimeout(resolve, 250),
+      );
+
+      const status = await request(
+        "/stream/start",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            instrument_ids: instrumentIds,
+            interval_ms: 500,
+            volatility_bps: 2,
+          }),
+        },
+      );
+
+      log(
+        `Stream started for ${status.instrument_count} instruments`,
+      );
+    }
+
+    async function stopStream() {
+      const status = await request(
+        "/stream/stop",
+        {
+          method: "POST",
+        },
+      );
+
+      if (state.socket) {
+        state.socket.close();
+        state.socket = null;
+      }
+
+      setConnection("", "Stopped");
+      log(`Stream stopped; running=${status.running}`);
+    }
+
+    async function runScenario() {
+      const payload = await request(
+        "/risk/scenario-analysis",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            instrument_ids: parseInstrumentIds(),
+            position_notional:
+              Number(elements.positionNotional.value),
+            treasury_shift_bps:
+              Number(elements.treasuryShift.value),
+            spread_shift_bps:
+              Number(elements.spreadShift.value),
+            liquidity_haircut_percent:
+              Number(elements.liquidityHaircut.value),
+            downgrade_notches:
+              Number(elements.downgradeNotches.value),
+          }),
+        },
+      );
+
+      state.scenario = payload;
+      render();
+
+      log(
+        `Scenario completed: total P&L ${currency(
+          payload.total_pnl,
+        )}`,
+      );
+    }
+
+    function exportSnapshot() {
+      const snapshot = {
+        exported_at: new Date().toISOString(),
+        sequence: state.sequence,
+        controls: {
+          instrument_ids: parseInstrumentIds(),
+          position_notional:
+            Number(elements.positionNotional.value),
+          treasury_shift_bps:
+            Number(elements.treasuryShift.value),
+          spread_shift_bps:
+            Number(elements.spreadShift.value),
+          liquidity_haircut_percent:
+            Number(elements.liquidityHaircut.value),
+          downgrade_notches:
+            Number(elements.downgradeNotches.value),
+        },
+        prices: Array.from(state.prices.values()),
+        scenario: state.scenario,
+      };
+
+      const blob = new Blob(
+        [JSON.stringify(snapshot, null, 2)],
+        {
+          type: "application/json",
+        },
+      );
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+
+      anchor.href = url;
+      anchor.download =
+        `mercator-snapshot-${Date.now()}.json`;
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      URL.revokeObjectURL(url);
+      log("Snapshot exported");
+    }
+
+    async function handleAction(action) {
+      try {
+        await action();
+      } catch (error) {
+        log(`ERROR: ${error.message}`);
+        setConnection("error", "Request failed");
+      }
+    }
+
+    elements.startButton.addEventListener(
+      "click",
+      () => handleAction(startStream),
+    );
+
+    elements.stopButton.addEventListener(
+      "click",
+      () => handleAction(stopStream),
+    );
+
+    elements.scenarioButton.addEventListener(
+      "click",
+      () => handleAction(runScenario),
+    );
+
+    elements.exportButton.addEventListener(
+      "click",
+      exportSnapshot,
+    );
+
+    elements.positionNotional.addEventListener(
+      "input",
+      render,
+    );
+
+    render();
+  </script>
+</body>
+</html>

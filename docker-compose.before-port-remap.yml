@@ -38,7 +38,7 @@ services:
       POSTGRES_PASSWORD: mercator
       POSTGRES_DB: mercator
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - mercator_postgres:/var/lib/postgresql/data
     healthcheck:
@@ -76,7 +76,7 @@ services:
     container_name: mercator-redis
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - mercator_redis:/data
     command: redis-server --appendonly yes

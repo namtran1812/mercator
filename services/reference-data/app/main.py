@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from psycopg import Connection
 
 from .database import connection_dependency
@@ -29,6 +30,19 @@ app = FastAPI(
         "and fixed-income ETFs."
     ),
 )
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:8005",
+        "http://localhost:8005",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
 
 
 @app.get("/health")

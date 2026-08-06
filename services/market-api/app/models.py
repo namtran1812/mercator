@@ -648,3 +648,29 @@ class ScenarioAnalysisResponse(BaseModel):
     downgrade_pnl: float
 
     instruments: list[ScenarioInstrumentResult]
+
+
+
+class MarketStreamStartRequest(BaseModel):
+    instrument_ids: list[int] = Field(
+        min_length=1,
+        max_length=1_000,
+    )
+    interval_ms: int = Field(
+        default=500,
+        ge=100,
+        le=60_000,
+    )
+    volatility_bps: float = Field(
+        default=2.0,
+        ge=0.0,
+        le=100.0,
+    )
+
+
+class MarketStreamStatusResponse(BaseModel):
+    running: bool
+    client_count: int
+    instrument_count: int
+    interval_ms: int | None
+    sequence: int

@@ -2,7 +2,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from .market_stream import market_stream_runtime
@@ -67,15 +66,6 @@ app = FastAPI(
     title="Mercator Market API",
     version="0.1.0",
 )
-
-STATIC_DIR = Path(__file__).resolve().parent / "static"
-
-app.mount(
-    "/static",
-    StaticFiles(directory=STATIC_DIR),
-    name="static",
-)
-
 
 WORKBENCH_PATH = (
     Path(__file__).resolve().parent
