@@ -11,9 +11,9 @@ from .config import (
 )
 from .models import (
     LatestBondPrice,
+    MarketQuoteSnapshot,
     MarketSummary,
     PriceHistoryPoint,
-    ReplayScenario,
     ReplayScenario,
 )
 
@@ -26,6 +26,64 @@ class MarketRepository:
             username=CLICKHOUSE_USERNAME,
             password=CLICKHOUSE_PASSWORD,
             database=CLICKHOUSE_DATABASE,
+        )
+
+
+    def latest_market_quote(
+        self,
+        instrument_id: int,
+    ) -> MarketQuoteSnapshot | None:
+        result = self._client.query(
+            """
+            SELECT
+                instrument_id,
+                bid,
+                ask,
+                mid,
+                source,
+                source_reliability,
+                accepted,
+                event_time
+            FROM market_quotes
+            WHERE instrument_id = %(instrument_id)s
+              AND accepted = 1
+            ORDER BY event_time DESC
+            LIMIT 1
+            """,
+            parameters={
+                "instrument_id":
+                    instrument_id,
+            },
+        )
+
+        if not result.result_rows:
+            return None
+
+        row = result.result_rows[0]
+
+        return MarketQuoteSnapshot(
+            instrument_id=int(
+                row[0]
+            ),
+            bid=float(
+                row[1]
+            ),
+            ask=float(
+                row[2]
+            ),
+            mid=float(
+                row[3]
+            ),
+            source=str(
+                row[4]
+            ),
+            source_reliability=float(
+                row[5]
+            ),
+            accepted=bool(
+                row[6]
+            ),
+            event_time=row[7],
         )
 
     def latest_prices(

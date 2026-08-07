@@ -7,7 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from psycopg import Connection
 
 from .database import connection_dependency
-from .models import InstrumentSearchResult, InstrumentVersion
+from .models import (
+    FixedIncomeEtfConstituent,
+    FixedIncomeEtfDetails,
+    InstrumentSearchResult,
+    InstrumentVersion,
+)
 from .reconciliation import reconcile_observations
 from .reconciliation_models import (
     ReconciliationResult,
@@ -16,6 +21,8 @@ from .reconciliation_models import (
 from .repository import (
     get_current_instrument,
     get_instrument_as_of,
+    get_current_etf,
+    get_current_etf_constituents,
     list_versions,
     search_instruments,
     get_active_reference_observations,
@@ -168,3 +175,85 @@ def reconcile_field(
     persist_reconciliation(connection, result)
 
     return result
+
+
+@app.get(
+    "/etfs/{instrument_id}",
+    response_model=FixedIncomeEtfDetails,
+)
+def current_etf(
+    instrument_id: int,
+    connection: Connection = Depends(
+        connection_dependency
+    ),
+) -> FixedIncomeEtfDetails:
+    instrument = get_current_instrument(
+        connection=connection,
+        instrument_id=instrument_id,
+    )
+
+    if (
+        instrument is None
+        or instrument.instrument_type
+        != "FIXED_INCOME_ETF"
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Fixed-income ETF not found",
+        )
+
+    etf = get_current_etf(
+        connection=connection,
+        instrument_id=instrument_id,
+    )
+
+    if etf is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ETF analytics metadata not found",
+        )
+
+    return etf
+
+
+@app.get(
+    "/etfs/{instrument_id}/constituents",
+    response_model=list[
+        FixedIncomeEtfConstituent
+    ],
+)
+def current_etf_constituents(
+    instrument_id: int,
+    connection: Connection = Depends(
+        connection_dependency
+    ),
+) -> list[FixedIncomeEtfConstituent]:
+    instrument = get_current_instrument(
+        connection=connection,
+        instrument_id=instrument_id,
+    )
+
+    if (
+        instrument is None
+        or instrument.instrument_type
+        != "FIXED_INCOME_ETF"
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Fixed-income ETF not found",
+        )
+
+    constituents = (
+        get_current_etf_constituents(
+            connection=connection,
+            instrument_id=instrument_id,
+        )
+    )
+
+    if not constituents:
+        raise HTTPException(
+            status_code=404,
+            detail="ETF constituents not found",
+        )
+
+    return constituents

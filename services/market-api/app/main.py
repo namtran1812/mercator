@@ -1,7 +1,10 @@
 from __future__ import annotations
+
+import os
+import httpx
 from pathlib import Path
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
@@ -95,6 +98,17 @@ app.add_middleware(
 )
 
 repository = MarketRepository()
+
+REFERENCE_DATA_URL = os.getenv(
+    "REFERENCE_DATA_URL",
+    "http:" + "//127.0.0.1:8001",
+).rstrip("/")
+
+AGENT_RUNTIME_URL = os.getenv(
+    "AGENT_RUNTIME_URL",
+    "http:" + "//127.0.0.1:8006",
+).rstrip("/")
+
 
 
 @app.get("/health")
@@ -514,3 +528,142 @@ async def portfolio_workbench() -> FileResponse:
         WORKBENCH_PATH,
         media_type="text/html",
     )
+
+
+# ============================================================
+# Fixed-Income ETF Analytics
+# ============================================================
+
+from fastapi import HTTPException as _EtfHTTPException
+
+from .etf_analytics import (
+    EtfAnalyticsError,
+    build_etf_analytics,
+)
+
+from .models import (
+    FixedIncomeEtfAnalyticsResponse,
+)
+
+
+@app.get(
+    "/etfs/{instrument_id}/analytics",
+    response_model=
+        FixedIncomeEtfAnalyticsResponse,
+)
+def fixed_income_etf_analytics(
+    instrument_id: int,
+) -> FixedIncomeEtfAnalyticsResponse:
+
+    try:
+        return build_etf_analytics(
+            repository,
+            instrument_id,
+        )
+
+    except EtfAnalyticsError as error:
+        raise _EtfHTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+
+
+@app.get("/instruments/search")
+def proxy_instrument_search(
+    q: str,
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=500,
+    ),
+) -> Response:
+    with httpx.Client(
+        timeout=30.0,
+    ) as client:
+        upstream = client.get(
+            (
+                f"{REFERENCE_DATA_URL}"
+                "/instruments/search"
+            ),
+            params={
+                "q": q,
+                "limit": limit,
+            },
+        )
+
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers={
+            "content-type":
+                upstream.headers.get(
+                    "content-type",
+                    "application/json",
+                ),
+        },
+    )
+
+
+@app.get("/instruments/{instrument_id}")
+def proxy_instrument(
+    instrument_id: int,
+) -> Response:
+    with httpx.Client(
+        timeout=30.0,
+    ) as client:
+        upstream = client.get(
+            (
+                f"{REFERENCE_DATA_URL}"
+                f"/instruments/{instrument_id}"
+            ),
+        )
+
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers={
+            "content-type":
+                upstream.headers.get(
+                    "content-type",
+                    "application/json",
+                ),
+        },
+    )
+
+
+@app.post("/agent/query")
+async def proxy_agent_query(
+    request: Request,
+) -> Response:
+    body = await request.body()
+
+    async with httpx.AsyncClient(
+        timeout=120.0,
+    ) as client:
+        upstream = await client.post(
+            (
+                f"{AGENT_RUNTIME_URL}"
+                "/agent/query"
+            ),
+            content=body,
+            headers={
+                "content-type":
+                    request.headers.get(
+                        "content-type",
+                        "application/json",
+                    ),
+            },
+        )
+
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers={
+            "content-type":
+                upstream.headers.get(
+                    "content-type",
+                    "application/json",
+                ),
+        },
+    )
+

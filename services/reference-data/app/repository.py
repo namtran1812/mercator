@@ -4,7 +4,12 @@ from datetime import datetime
 
 from psycopg import Connection
 
-from .models import InstrumentSearchResult, InstrumentVersion
+from .models import (
+    FixedIncomeEtfConstituent,
+    FixedIncomeEtfDetails,
+    InstrumentSearchResult,
+    InstrumentVersion,
+)
 
 
 def get_current_instrument(
@@ -229,3 +234,78 @@ def persist_reconciliation(
         )
 
     connection.commit()
+
+
+def get_current_etf(
+    connection: Connection,
+    instrument_id: int,
+) -> FixedIncomeEtfDetails | None:
+    query = """
+        SELECT *
+        FROM fixed_income_etf_versions
+        WHERE instrument_id = %s
+          AND valid_from <= now()
+          AND (
+              valid_to IS NULL
+              OR valid_to > now()
+          )
+          AND recorded_from <= now()
+          AND (
+              recorded_to IS NULL
+              OR recorded_to > now()
+          )
+        ORDER BY recorded_from DESC
+        LIMIT 1
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            query,
+            (instrument_id,),
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return FixedIncomeEtfDetails.model_validate(
+        row
+    )
+
+
+def get_current_etf_constituents(
+    connection: Connection,
+    instrument_id: int,
+) -> list[FixedIncomeEtfConstituent]:
+    query = """
+        SELECT *
+        FROM fixed_income_etf_constituents
+        WHERE etf_instrument_id = %s
+          AND valid_from <= now()
+          AND (
+              valid_to IS NULL
+              OR valid_to > now()
+          )
+          AND recorded_from <= now()
+          AND (
+              recorded_to IS NULL
+              OR recorded_to > now()
+          )
+        ORDER BY weight DESC
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            query,
+            (instrument_id,),
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        FixedIncomeEtfConstituent.model_validate(
+            row
+        )
+        for row in rows
+    ]

@@ -4,40 +4,41 @@ from mercator_agent.state.models import (
     AgentState,
 )
 
-from mercator_agent.tools.pricing import (
-    latest_prices,
+from mercator_agent.tools.risk import (
+    get_risk_decomposition,
 )
 
 
-def retrieve_prices_node(
+def analyze_risk_node(
     state: AgentState,
 ) -> AgentState:
     plan = state.get("plan")
 
     if (
         plan is not None
-        and not plan.needs_prices
+        and not plan.needs_risk
     ):
         return {
-            "prices": [],
-
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "skipped",
+
+                "risk": {
+                    "status":
+                        "skipped",
+
                     "reason":
                         "planner_disabled",
                 },
             },
         }
 
+    request = state["request"]
+
     instrument_ids = list(
-        state[
-            "request"
-        ].instrument_ids
+        request.instrument_ids
     )
 
     if not instrument_ids:
@@ -63,15 +64,16 @@ def retrieve_prices_node(
 
     if not instrument_ids:
         return {
-            "prices": [],
-
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "skipped",
+
+                "risk": {
+                    "status":
+                        "skipped",
+
                     "reason":
                         "no_instrument_ids",
                 },
@@ -79,26 +81,34 @@ def retrieve_prices_node(
         }
 
     try:
-        prices = latest_prices(
-            instrument_ids
+        risk = get_risk_decomposition(
+            instrument_ids,
+            position_notional=
+                1_000_000.0,
         )
 
         return {
-            "prices": prices,
+            "risk":
+                risk,
 
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "completed",
-                    "requested":
-                        len(
-                            instrument_ids
-                        ),
-                    "returned":
-                        len(prices),
+
+                "risk": {
+                    "status":
+                        "completed",
+
+                    "instrument_count":
+                        risk.instrument_count,
+
+                    "total_dv01":
+                        risk.total_dv01,
+
+                    "total_cs01":
+                        risk.total_cs01,
                 },
             },
         }
@@ -110,22 +120,25 @@ def retrieve_prices_node(
                     "errors",
                     [],
                 ),
+
                 (
-                    "Pricing retrieval failed: "
+                    "Risk analysis failed: "
                     f"{error}"
                 ),
             ],
-
-            "prices": [],
 
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "failed",
-                    "error": str(error),
+
+                "risk": {
+                    "status":
+                        "failed",
+
+                    "error":
+                        str(error),
                 },
             },
         }

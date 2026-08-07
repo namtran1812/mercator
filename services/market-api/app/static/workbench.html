@@ -12,65 +12,130 @@
 </head>
 
 <body>
-  
-    <aside
-      id="workbenchSidebar"
-      class="workbench-sidebar"
+
+
+
+  <aside
+    id="researchRail"
+    class="research-rail"
+  >
+    <div class="research-rail-brand">
+      <strong>MERCATOR</strong>
+      <span>FIXED INCOME</span>
+    </div>
+
+    <nav
+      class="research-rail-nav"
+      aria-label="Mercator workspace"
     >
-      <div class="sidebar-brand">
-        <span class="sidebar-brand-mark">M</span>
+      <button
+        type="button"
+        class="research-nav-item active"
+        data-workspace-heading="Portfolio Overview"
+      >
+        <span class="research-nav-code">01</span>
+        <span>Overview</span>
+      </button>
 
-        <div>
-          <strong>Mercator</strong>
-          <span>Workbench</span>
-        </div>
-      </div>
+      <button
+        type="button"
+        class="research-nav-item"
+        data-workspace-heading="Market Overview"
+      >
+        <span class="research-nav-code">02</span>
+        <span>Market</span>
+      </button>
 
-      <nav class="sidebar-nav">
-        <a
-          class="sidebar-link active"
-          href="#workbench-top"
-        >
-          Overview
-        </a>
+      <button
+        type="button"
+        class="research-nav-item"
+        data-workspace-heading="Price History Explorer"
+      >
+        <span class="research-nav-code">03</span>
+        <span>History</span>
+      </button>
 
-        <a
-          class="sidebar-link"
-          href="#market-overview"
-        >
-          Market Overview
-        </a>
+      <button
+        type="button"
+        class="research-nav-item"
+        data-workspace-heading="Portfolio Optimization"
+      >
+        <span class="research-nav-code">04</span>
+        <span>Portfolio</span>
+      </button>
 
-        <a
-          class="sidebar-link"
-          href="#history"
-        >
-          Price History
-        </a>
+      <button
+        type="button"
+        class="research-nav-item"
+        data-workspace-heading="Risk Management"
+      >
+        <span class="research-nav-code">05</span>
+        <span>Risk</span>
+      </button>
 
-        <a
-          class="sidebar-link"
-          href="#risk"
-        >
-          Risk Management
-        </a>
+      <button
+        type="button"
+        class="research-nav-item"
+        data-workspace-heading="Replay & Stream Control"
+      >
+        <span class="research-nav-code">06</span>
+        <span>Operations</span>
+      </button>
 
-        <a
-          class="sidebar-link"
-          href="#operations"
-        >
-          Replay & Stream
-        </a>
+      <button
+        type="button"
+        class="research-nav-item"
+        data-workspace-heading="Mercator Agent"
+      >
+        <span class="research-nav-code">07</span>
+        <span>Agent</span>
+      </button>
+    </nav>
 
-      </nav>
-
-      <div class="sidebar-footer">
-        <span class="sidebar-status-dot"></span>
-        Market API
-      </div>
-    </aside>
+    <div class="research-rail-footer">
+      <span class="research-system-dot"></span>
+      <span>LOCAL</span>
+    </div>
+  </aside>
 
 <main id="workbench-top" class="shell">
+
+    <div
+      id="workspaceContextBar"
+      class="workspace-context-bar"
+    >
+      <div class="workspace-context-primary">
+        <span class="workspace-context-label">
+          WORKSPACE
+        </span>
+
+        <strong id="workspaceContextTitle">
+          Overview
+        </strong>
+      </div>
+
+      <div class="workspace-context-meta">
+        <span>
+          USD FIXED INCOME
+        </span>
+
+        <span class="workspace-context-separator">
+          /
+        </span>
+
+        <span>
+          LIVE ANALYTICS
+        </span>
+
+        <span
+          id="workspaceContextStatus"
+          class="workspace-context-status"
+        >
+          READY
+        </span>
+      </div>
+    </div>
+
 
 <div
     id="systemHealthBar"
@@ -2714,6 +2779,96 @@
 
     </section>
 
+
+    <div
+      id="agent"
+      class="section-title workspace-section"
+    >
+      <h2>Mercator Agent</h2>
+
+      <p>
+        Ask natural-language questions across pricing,
+        relative value, portfolio risk, stress testing,
+        hedging, and fixed-income ETF analytics.
+      </p>
+    </div>
+
+    <section class="workspace-section agent-workspace">
+      <article class="card agent-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Fixed-Income Intelligence</h3>
+
+            <div class="panel-meta">
+              Query pricing, relative value, risk,
+              stress, hedging, and ETF analytics.
+            </div>
+          </div>
+        </div>
+
+        <div class="agent-query-area">
+          <textarea
+            id="agentQuestion"
+            class="agent-question"
+            rows="4"
+            placeholder="Ask Mercator a fixed-income question..."
+          ></textarea>
+
+          <div class="agent-query-actions">
+            <button
+              id="runAgentButton"
+              type="button"
+              class="button primary"
+            >
+              Run Agent
+            </button>
+
+            <span
+              id="agentStatus"
+              class="agent-status"
+            >
+              Ready
+            </span>
+          </div>
+        </div>
+
+        <div class="agent-example-row">
+          <button
+            type="button"
+            class="button agent-example"
+            data-agent-question="Find cheap Northstar bonds, explain the risk, and show me how to hedge the portfolio."
+          >
+            Northstar RV + Hedge
+          </button>
+
+          <button
+            type="button"
+            class="button agent-example"
+            data-agent-question="Stress Northstar bonds against a 100bp rate shock."
+          >
+            100bp Stress
+          </button>
+
+          <button
+            type="button"
+            class="button agent-example"
+            data-agent-question="Show the NAV discount, market quote, and basket analytics for ETF 9501."
+          >
+            ETF 9501
+          </button>
+        </div>
+
+        <div
+          id="agentResult"
+          class="agent-result"
+        >
+          <div class="empty">
+            Ask Mercator a fixed-income question to begin.
+          </div>
+        </div>
+      </article>
+    </section>
+
   </main>
 
     <script src="/static/js/core.js"></script>
@@ -2721,6 +2876,8 @@
   <script src="/static/js/market.js"></script>
   <script src="/static/js/risk.js"></script>
   <script src="/static/js/operations.js"></script>
+  <script src="/static/js/workspace.js"></script>
+  <script src="/static/js/agent.js"></script>
   <script src="/static/js/bootstrap.js"></script>
 
   <div
@@ -2884,6 +3041,112 @@
           <div class="instrument-drawer-wide">
             <span>Reference Source</span>
             <strong id="drawerReferenceSource">—</strong>
+          </div>
+        </div>
+      </section>
+
+
+      <section
+        id="drawerEtfSection"
+        class="instrument-drawer-section"
+        hidden
+      >
+        <h3>ETF Analytics</h3>
+
+        <div class="instrument-drawer-grid">
+          <div class="instrument-drawer-wide">
+            <span>Fund</span>
+            <strong id="drawerEtfFundName">—</strong>
+          </div>
+
+          <div class="instrument-drawer-wide">
+            <span>Benchmark</span>
+            <strong id="drawerEtfBenchmark">—</strong>
+          </div>
+
+          <div>
+            <span>Reference NAV</span>
+            <strong id="drawerEtfNav">—</strong>
+          </div>
+
+          <div>
+            <span>Expense Ratio</span>
+            <strong id="drawerEtfExpenseRatio">—</strong>
+          </div>
+
+          <div>
+            <span>Constituents</span>
+            <strong id="drawerEtfConstituents">—</strong>
+          </div>
+
+          <div>
+            <span>Pricing Coverage</span>
+            <strong id="drawerEtfCoverage">—</strong>
+          </div>
+
+          <div>
+            <span>Weighted Yield</span>
+            <strong id="drawerEtfYield">—</strong>
+          </div>
+
+          <div>
+            <span>Weighted Spread</span>
+            <strong id="drawerEtfSpread">—</strong>
+          </div>
+
+          <div>
+            <span>Weighted Duration</span>
+            <strong id="drawerEtfDuration">—</strong>
+          </div>
+
+          <div>
+            <span>Weighted Convexity</span>
+            <strong id="drawerEtfConvexity">—</strong>
+          </div>
+
+          <div>
+            <span>Bid</span>
+            <strong id="drawerEtfBid">—</strong>
+          </div>
+
+          <div>
+            <span>Ask</span>
+            <strong id="drawerEtfAsk">—</strong>
+          </div>
+
+          <div>
+            <span>Mid</span>
+            <strong id="drawerEtfMid">—</strong>
+          </div>
+
+          <div>
+            <span>Bid / Ask Spread</span>
+            <strong id="drawerEtfBidAskSpread">—</strong>
+          </div>
+
+          <div>
+            <span>Market Price</span>
+            <strong id="drawerEtfMarketPrice">—</strong>
+          </div>
+
+          <div>
+            <span>Premium / Discount</span>
+            <strong id="drawerEtfPremiumDiscount">—</strong>
+          </div>
+
+          <div>
+            <span>Quote Source</span>
+            <strong id="drawerEtfQuoteSource">—</strong>
+          </div>
+
+          <div>
+            <span>Quote Reliability</span>
+            <strong id="drawerEtfQuoteReliability">—</strong>
+          </div>
+
+          <div class="instrument-drawer-wide">
+            <span>Quote Time</span>
+            <strong id="drawerEtfQuoteTime">—</strong>
           </div>
         </div>
       </section>

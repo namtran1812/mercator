@@ -4,30 +4,33 @@ from mercator_agent.state.models import (
     AgentState,
 )
 
-from mercator_agent.tools.pricing import (
-    latest_prices,
+from mercator_agent.tools.hedge import (
+    get_hedge_recommendations,
 )
 
 
-def retrieve_prices_node(
+def analyze_hedge_node(
     state: AgentState,
 ) -> AgentState:
-    plan = state.get("plan")
+    plan = state.get(
+        "plan"
+    )
 
     if (
         plan is not None
-        and not plan.needs_prices
+        and not plan.needs_hedge
     ):
         return {
-            "prices": [],
-
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "skipped",
+
+                "hedge": {
+                    "status":
+                        "skipped",
+
                     "reason":
                         "planner_disabled",
                 },
@@ -63,15 +66,16 @@ def retrieve_prices_node(
 
     if not instrument_ids:
         return {
-            "prices": [],
-
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "skipped",
+
+                "hedge": {
+                    "status":
+                        "skipped",
+
                     "reason":
                         "no_instrument_ids",
                 },
@@ -79,26 +83,49 @@ def retrieve_prices_node(
         }
 
     try:
-        prices = latest_prices(
-            instrument_ids
+        hedge = get_hedge_recommendations(
+            instrument_ids,
+            position_notional=
+                1_000_000.0,
+
+            hedge_ratio=
+                1.0,
+
+            include_credit_hedge=
+                True,
         )
 
         return {
-            "prices": prices,
+            "hedge":
+                hedge,
 
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "completed",
-                    "requested":
+
+                "hedge": {
+                    "status":
+                        "completed",
+
+                    "instrument_count":
+                        hedge.instrument_count,
+
+                    "treasury_hedges":
                         len(
-                            instrument_ids
+                            hedge.treasury_hedges
                         ),
-                    "returned":
-                        len(prices),
+
+                    "credit_hedge":
+                        hedge.credit_hedge
+                        is not None,
+
+                    "residual_dv01":
+                        hedge.residual_dv01,
+
+                    "residual_cs01":
+                        hedge.residual_cs01,
                 },
             },
         }
@@ -110,22 +137,25 @@ def retrieve_prices_node(
                     "errors",
                     [],
                 ),
+
                 (
-                    "Pricing retrieval failed: "
+                    "Hedge analysis failed: "
                     f"{error}"
                 ),
             ],
-
-            "prices": [],
 
             "diagnostics": {
                 **state.get(
                     "diagnostics",
                     {},
                 ),
-                "pricing": {
-                    "status": "failed",
-                    "error": str(error),
+
+                "hedge": {
+                    "status":
+                        "failed",
+
+                    "error":
+                        str(error),
                 },
             },
         }

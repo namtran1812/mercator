@@ -674,3 +674,55 @@ class MarketStreamStatusResponse(BaseModel):
     instrument_count: int
     interval_ms: int | None
     sequence: int
+
+
+class FixedIncomeEtfAnalyticsResponse(BaseModel):
+    instrument_id: int
+
+    fund_name: str
+    benchmark_name: str | None
+
+    constituent_count: int
+    priced_constituent_count: int
+
+    priced_weight: float
+    missing_weight: float
+
+    weighted_clean_price: float
+    weighted_yield_to_maturity: float
+    weighted_g_spread_bps: float
+    weighted_modified_duration: float
+    weighted_convexity: float
+
+    reference_nav: float | None
+
+    market_price: float | None
+
+    bid: float | None = None
+    ask: float | None = None
+    mid: float | None = None
+
+    bid_ask_spread: float | None = None
+    bid_ask_spread_bps: float | None = None
+
+    premium_discount_percent: float | None
+
+    quote_source: str | None = None
+    quote_timestamp: datetime | None = None
+    quote_reliability: float | None = None
+
+    expense_ratio: float | None
+    shares_outstanding: float | None
+
+
+class MarketQuoteSnapshot(BaseModel):
+    instrument_id: int
+    bid: float
+    ask: float
+    mid: float
+
+    source: str
+    source_reliability: float
+    accepted: bool
+
+    event_time: datetime

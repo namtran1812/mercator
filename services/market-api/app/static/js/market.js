@@ -1400,6 +1400,7 @@ function renderInstrumentDrawer(
   history,
   risk,
   reference,
+  etfAnalytics,
 ) {
   const latest =
     Array.isArray(history)
@@ -1486,6 +1487,190 @@ function renderInstrumentDrawer(
       ? `${reference.source} · version ${reference.version_id}`
       : "—",
   );
+
+  const etfSection =
+    document.getElementById(
+      "drawerEtfSection",
+    );
+
+  const isEtf =
+    reference?.instrument_type
+      === "FIXED_INCOME_ETF";
+
+  if (etfSection) {
+    etfSection.hidden = !isEtf;
+  }
+
+  if (
+    isEtf
+    && etfAnalytics
+  ) {
+    setInstrumentDrawerValue(
+      "drawerEtfFundName",
+      etfAnalytics.fund_name,
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfBenchmark",
+      etfAnalytics.benchmark_name
+        ?? "—",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfNav",
+      etfAnalytics.reference_nav != null
+        ? `$${number(
+            etfAnalytics.reference_nav,
+            4,
+          )}`
+        : "—",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfExpenseRatio",
+      etfAnalytics.expense_ratio != null
+        ? `${number(
+            etfAnalytics.expense_ratio
+              * 100,
+            4,
+          )}%`
+        : "—",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfConstituents",
+      `${etfAnalytics.priced_constituent_count}`
+      + ` / ${etfAnalytics.constituent_count}`,
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfCoverage",
+      `${number(
+        etfAnalytics.priced_weight
+          * 100,
+        2,
+      )}%`,
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfYield",
+      `${number(
+        etfAnalytics.weighted_yield_to_maturity
+          * 100,
+        3,
+      )}%`,
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfSpread",
+      `${number(
+        etfAnalytics.weighted_g_spread_bps,
+        2,
+      )} bp`,
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfDuration",
+      number(
+        etfAnalytics.weighted_modified_duration,
+        3,
+      ),
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfConvexity",
+      number(
+        etfAnalytics.weighted_convexity,
+        3,
+      ),
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfBid",
+      etfAnalytics.bid != null
+        ? `$${number(
+            etfAnalytics.bid,
+            4,
+          )}`
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfAsk",
+      etfAnalytics.ask != null
+        ? `$${number(
+            etfAnalytics.ask,
+            4,
+          )}`
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfMid",
+      etfAnalytics.mid != null
+        ? `$${number(
+            etfAnalytics.mid,
+            4,
+          )}`
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfBidAskSpread",
+      etfAnalytics.bid_ask_spread_bps != null
+        ? `${number(
+            etfAnalytics.bid_ask_spread_bps,
+            2,
+          )} bp`
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfQuoteSource",
+      etfAnalytics.quote_source
+        ?? "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfQuoteReliability",
+      etfAnalytics.quote_reliability != null
+        ? `${number(
+            etfAnalytics.quote_reliability
+              * 100,
+            1,
+          )}%`
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfQuoteTime",
+      etfAnalytics.quote_timestamp
+        ? formatPriceHistoryTime(
+            etfAnalytics.quote_timestamp,
+          )
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfMarketPrice",
+      etfAnalytics.market_price != null
+        ? `$${number(
+            etfAnalytics.market_price,
+            4,
+          )}`
+        : "Unavailable",
+    );
+
+    setInstrumentDrawerValue(
+      "drawerEtfPremiumDiscount",
+      etfAnalytics.premium_discount_percent != null
+        ? `${number(
+            etfAnalytics.premium_discount_percent,
+            3,
+          )}%`
+        : "Unavailable",
+    );
+  }
 
   setInstrumentDrawerValue(
     "drawerCleanPrice",
@@ -1744,7 +1929,7 @@ async function openInstrumentDrilldown(
       ),
 
       fetch(
-        `http://127.0.0.1:8001/instruments/${id}`,
+        `/instruments/${id}`,
       ).then(async (response) => {
         if (!response.ok) {
           throw new Error(
@@ -1763,11 +1948,23 @@ async function openInstrumentDrilldown(
       return;
     }
 
+    let etfAnalytics = null;
+
+    if (
+      reference?.instrument_type
+      === "FIXED_INCOME_ETF"
+    ) {
+      etfAnalytics = await request(
+        `/etfs/${id}/analytics`,
+      );
+    }
+
     renderInstrumentDrawer(
       id,
       history,
       risk,
       reference,
+      etfAnalytics,
     );
   } catch (error) {
     toastError(
@@ -2348,7 +2545,7 @@ async function searchInstruments() {
   try {
     const response =
       await fetch(
-        `http://127.0.0.1:8001/instruments/search?q=${
+        `/instruments/search?q=${
           encodeURIComponent(query)
         }&limit=8`,
       );

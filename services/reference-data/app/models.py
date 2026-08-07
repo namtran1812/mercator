@@ -47,3 +47,37 @@ class InstrumentSearchResult(BaseModel):
 
     rating: str | None = None
     sector: str | None = None
+
+
+class FixedIncomeEtfDetails(BaseModel):
+    instrument_id: int
+    fund_name: str
+    benchmark_name: str | None = None
+    expense_ratio: Decimal | None = None
+    shares_outstanding: Decimal | None = None
+    nav: Decimal | None = None
+
+    valid_from: datetime
+    valid_to: datetime | None = None
+
+    recorded_from: datetime
+    recorded_to: datetime | None = None
+
+    source: str
+    source_event_id: UUID
+
+
+class FixedIncomeEtfConstituent(BaseModel):
+    etf_instrument_id: int
+    constituent_instrument_id: int
+    weight: Decimal
+    face_value: Decimal | None = None
+
+    valid_from: datetime
+    valid_to: datetime | None = None
+
+    recorded_from: datetime
+    recorded_to: datetime | None = None
+
+    source: str
+    source_event_id: UUID

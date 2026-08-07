@@ -1,144 +1,492 @@
 from __future__ import annotations
 
-import re
-
 from mercator_agent.state.models import (
     AgentState,
     ClientBrief,
 )
 
 
-RISK_TERMS = {
-    "liquidity",
-    "debt",
-    "refinancing",
-    "interest rate",
-    "cybersecurity",
-    "regulatory",
-    "supply chain",
-}
-
-
-def shorten(
-    value: str,
-    maximum: int = 280,
-) -> str:
-    normalized = re.sub(
-        r"\s+",
-        " ",
-        value,
-    ).strip()
-
-    if len(normalized) <= maximum:
-        return normalized
-
-    return normalized[: maximum - 1].rstrip() + "…"
-
-
 def compose_brief_node(
     state: AgentState,
 ) -> AgentState:
-    issuer = state.get("issuer")
-
-    if issuer is None:
-        return {
-            "errors": [
-                *state.get("errors", []),
-                "Brief could not be composed "
-                "without an issuer.",
-            ],
-        }
-
     request = state["request"]
-    evidence = state.get("evidence", [])
+
+    issuer = state.get(
+        "issuer"
+    )
+
+    security = state.get(
+        "security"
+    )
+
+    etf_analytics = state.get(
+        "etf_analytics"
+    )
+
+    evidence = state.get(
+        "evidence",
+        [],
+    )
+
+    prices = state.get(
+        "prices",
+        [],
+    )
+
     relative_value = state.get(
         "relative_value",
         [],
     )
 
-    market_observations = [
-        (
-            f"Instrument {result.instrument_id}: "
-            f"{result.spread_bps:.2f} bp G-spread, "
-            f"{result.spread_difference_bps:+.2f} bp "
-            f"versus selected peers; "
-            f"{result.interpretation}."
+    #
+    # Prefer SEC issuer resolution when available.
+    #
+    # For synthetic/security-master-only issuers,
+    # fall back to the security resolution result.
+    #
+    issuer_name = None
+
+    if issuer is not None:
+        issuer_name = (
+            issuer.issuer_name
         )
-        for result in relative_value
-    ]
 
-    evidence_summary = [
-        (
-            f"{item.citation_label}: "
-            f"{shorten(item.text)}"
+    elif (
+        security is not None
+        and security.issuer_name
+    ):
+        issuer_name = (
+            security.issuer_name
         )
-        for item in evidence
-    ]
 
-    risks: list[str] = []
+    elif request.issuer:
+        issuer_name = (
+            request.issuer
+        )
 
-    for item in evidence:
-        lowered = item.text.lower()
+    elif etf_analytics is not None:
+        issuer_name = (
+            etf_analytics.fund_name
+        )
 
-        matched = [
-            term
-            for term in RISK_TERMS
-            if term in lowered
-        ]
+    else:
+        issuer_name = (
+            "Unknown issuer"
+        )
 
-        if matched:
-            risks.append(
+    market_observations: list[str] = []
+
+    if etf_analytics is not None:
+        coverage_percent = (
+            etf_analytics.priced_weight
+            * 100.0
+        )
+
+        market_observations.append(
+            (
+                f"{etf_analytics.fund_name} has "
+                f"reference NAV "
+                f"{etf_analytics.reference_nav:.4f}"
+                if etf_analytics.reference_nav
+                is not None
+                else (
+                    f"{etf_analytics.fund_name} "
+                    "has no reference NAV."
+                )
+            )
+        )
+
+        if etf_analytics.mid is not None:
+            market_observations.append(
                 (
-                    f"{item.citation_label}: "
-                    f"mentions "
-                    f"{', '.join(sorted(matched))}."
+                    f"ETF mid is "
+                    f"{etf_analytics.mid:.4f}"
+                    + (
+                        f", with premium/discount "
+                        f"{etf_analytics.premium_discount_percent:+.3f}%."
+                        if etf_analytics.premium_discount_percent
+                        is not None
+                        else "."
+                    )
                 )
             )
 
-    summary_parts = [
-        (
-            f"Mercator reviewed "
-            f"{len(evidence)} filing evidence "
-            f"passage(s) for {issuer.issuer_name}."
-        )
-    ]
+        if (
+            etf_analytics.bid is not None
+            and etf_analytics.ask is not None
+        ):
+            market_observations.append(
+                (
+                    f"Bid/ask is "
+                    f"{etf_analytics.bid:.4f} / "
+                    f"{etf_analytics.ask:.4f}"
+                    + (
+                        f" "
+                        f"({etf_analytics.bid_ask_spread_bps:.2f} bp)."
+                        if etf_analytics.bid_ask_spread_bps
+                        is not None
+                        else "."
+                    )
+                )
+            )
 
-    if relative_value:
-        widest = relative_value[0]
-
-        summary_parts.append(
+        market_observations.append(
             (
-                f"Instrument {widest.instrument_id} "
-                f"has the widest selected-peer "
-                f"spread differential at "
-                f"{widest.spread_difference_bps:+.2f} bp."
+                f"Basket pricing coverage is "
+                f"{coverage_percent:.2f}% "
+                f"({etf_analytics.priced_constituent_count}/"
+                f"{etf_analytics.constituent_count} constituents)."
             )
         )
 
-    if not state.get("evidence_valid", False):
-        summary_parts.append(
-            "The available filing evidence did not "
-            "pass every validation check."
+        market_observations.append(
+            (
+                f"Weighted basket yield is "
+                f"{etf_analytics.weighted_yield_to_maturity * 100:.2f}%, "
+                f"G-spread "
+                f"{etf_analytics.weighted_g_spread_bps:.1f} bp, "
+                f"and modified duration "
+                f"{etf_analytics.weighted_modified_duration:.2f}."
+            )
         )
 
-    citations = [
-        (
-            f"{item.citation_label} — "
-            f"{item.filing_url}"
+    #
+    # Summarize strongest relative-value signals.
+    #
+    for item in relative_value[:5]:
+        market_observations.append(
+            (
+                f"Instrument {item.instrument_id} "
+                f"trades at {item.spread_bps:.1f} bp, "
+                f"{item.spread_difference_bps:+.1f} bp "
+                "versus the selected peer average."
+            )
         )
-        for item in evidence
-    ]
+
+    #
+    # Fall back to general pricing observations when
+    # relative-value analysis was not requested.
+    #
+    if (
+        not market_observations
+        and prices
+    ):
+        for item in prices[:5]:
+            market_observations.append(
+                (
+                    f"Instrument {item.instrument_id}: "
+                    f"price {item.clean_price:.2f}, "
+                    f"yield "
+                    f"{item.yield_to_maturity * 100:.2f}%, "
+                    f"G-spread {item.g_spread_bps:.1f} bp, "
+                    f"duration {item.modified_duration:.2f}."
+                )
+            )
+
+    evidence_summary: list[str] = []
+
+    citations: list[str] = []
+
+    for item in evidence[:5]:
+        evidence_summary.append(
+            item.text
+        )
+
+        citations.append(
+            item.citation_label
+        )
+
+    #
+    # Research is optional.
+    #
+    # A security-master / market-data answer should still
+    # be usable even when no SEC research exists.
+    #
+    if not evidence_summary:
+        evidence_summary.append(
+            (
+                "No issuer research evidence was available "
+                "for this request; the analysis is based on "
+                "Mercator market and security-master data."
+            )
+        )
+
+    risks: list[str] = []
+
+    plan = state.get(
+        "plan"
+    )
+
+    risk = state.get(
+        "risk"
+    )
+
+    if risk is not None:
+        risks.append(
+            (
+                f"Portfolio DV01 is "
+                f"{risk.total_dv01:,.2f} and "
+                f"CS01 is {risk.total_cs01:,.2f} "
+                f"for {risk.instrument_count} instruments "
+                "at the configured notional."
+            )
+        )
+
+        if risk.portfolio_key_rate_dv01:
+            largest_key_rate = max(
+                risk.portfolio_key_rate_dv01,
+                key=lambda item:
+                    abs(
+                        item.key_rate_dv01
+                    ),
+            )
+
+            risks.append(
+                (
+                    f"The largest key-rate exposure is "
+                    f"{largest_key_rate.tenor} with "
+                    f"DV01 "
+                    f"{largest_key_rate.key_rate_dv01:,.2f}."
+                )
+            )
+
+    elif (
+        plan is not None
+        and plan.needs_risk
+    ):
+        risks.append(
+            "Risk analytics were requested but unavailable."
+        )
+
+    hedge = state.get(
+        "hedge"
+    )
+
+    if hedge is not None:
+        for treasury in hedge.treasury_hedges[:3]:
+            risks.append(
+                (
+                    f"Hedge recommendation: "
+                    f"{treasury.tenor} Treasury "
+                    f"notional "
+                    f"{treasury.recommended_notional:,.0f} "
+                    f"to offset key-rate DV01 "
+                    f"{treasury.portfolio_key_rate_dv01:,.2f}."
+                )
+            )
+
+        if hedge.credit_hedge is not None:
+            credit = hedge.credit_hedge
+
+            risks.append(
+                (
+                    f"Credit hedge recommendation: "
+                    f"{credit.hedge_instrument} "
+                    f"notional "
+                    f"{credit.recommended_notional:,.0f} "
+                    f"for portfolio CS01 "
+                    f"{credit.portfolio_cs01:,.2f}."
+                )
+            )
+
+        risks.append(
+            (
+                f"Residual risk after the recommended hedge "
+                f"is DV01 {hedge.residual_dv01:,.2f} "
+                f"and CS01 {hedge.residual_cs01:,.2f}."
+            )
+        )
+
+    stress = state.get(
+        "stress"
+    )
+
+    if stress is not None:
+        pnl_percent = (
+            stress.total_pnl
+            / stress.total_market_value
+            * 100.0
+            if stress.total_market_value
+            else 0.0
+        )
+
+        risks.append(
+            (
+                f"Stress-test P&L is "
+                f"{stress.total_pnl:,.2f} "
+                f"({pnl_percent:.2f}% of market value), "
+                f"including Treasury P&L "
+                f"{stress.total_treasury_pnl:,.2f} "
+                f"and credit P&L "
+                f"{stress.total_credit_pnl:,.2f}."
+            )
+        )
+
+        if stress.instruments:
+            worst = min(
+                stress.instruments,
+                key=lambda item:
+                    item.total_pnl,
+            )
+
+            worst_percent = (
+                worst.total_pnl
+                / worst.market_value
+                * 100.0
+                if worst.market_value
+                else 0.0
+            )
+
+            risks.append(
+                (
+                    f"Instrument {worst.instrument_id} "
+                    f"has the largest stressed loss at "
+                    f"{worst.total_pnl:,.2f} "
+                    f"({worst_percent:.2f}% "
+                    "of its market value)."
+                )
+            )
+
+    #
+    # Basic market-data-derived risk observations.
+    #
+    if (
+        prices
+        and etf_analytics is None
+    ):
+        longest = max(
+            prices,
+            key=lambda item:
+                item.modified_duration,
+        )
+
+        widest = max(
+            prices,
+            key=lambda item:
+                item.g_spread_bps,
+        )
+
+        risks.append(
+            (
+                f"Instrument {longest.instrument_id} "
+                f"has the highest modified duration "
+                f"among the retrieved securities "
+                f"({longest.modified_duration:.2f}), "
+                "indicating greater rate sensitivity."
+            )
+        )
+
+        risks.append(
+            (
+                f"Instrument {widest.instrument_id} "
+                f"has the widest G-spread "
+                f"({widest.g_spread_bps:.1f} bp), "
+                "which may indicate greater credit "
+                "or liquidity compensation."
+            )
+        )
+
+    if etf_analytics is not None:
+        premium_text = (
+            f"{etf_analytics.premium_discount_percent:+.3f}%"
+            if etf_analytics.premium_discount_percent
+            is not None
+            else "unavailable"
+        )
+
+        summary = (
+            f"{etf_analytics.fund_name} has "
+            f"{etf_analytics.priced_weight * 100:.2f}% "
+            f"basket pricing coverage and trades at "
+            f"a premium/discount of {premium_text}. "
+            f"Weighted duration is "
+            f"{etf_analytics.weighted_modified_duration:.2f} "
+            f"with G-spread "
+            f"{etf_analytics.weighted_g_spread_bps:.1f} bp."
+        )
+
+    elif relative_value:
+        widest_rv = max(
+            relative_value,
+            key=lambda item:
+                item.spread_difference_bps,
+        )
+
+        summary = (
+            f"Mercator identified "
+            f"{len(relative_value)} priced securities "
+            f"for {issuer_name}. "
+            f"Instrument {widest_rv.instrument_id} "
+            f"shows the largest positive spread "
+            f"difference versus the selected peer set "
+            f"at {widest_rv.spread_difference_bps:+.1f} bp."
+        )
+
+    elif prices:
+        summary = (
+            f"Mercator retrieved current pricing for "
+            f"{len(prices)} securities associated with "
+            f"{issuer_name}."
+        )
+
+    else:
+        summary = (
+            f"Mercator could not retrieve current market "
+            f"observations for {issuer_name}."
+        )
+
+    brief = ClientBrief(
+        issuer_name=issuer_name,
+
+        question=
+            request.question,
+
+        summary=
+            summary,
+
+        market_observations=
+            market_observations,
+
+        evidence_summary=
+            evidence_summary,
+
+        risks=
+            risks,
+
+        citations=
+            citations,
+    )
 
     return {
-        "brief": ClientBrief(
-            issuer_name=issuer.issuer_name,
-            question=request.question,
-            summary=" ".join(summary_parts),
-            market_observations=(
-                market_observations
+        "brief": brief,
+
+        "diagnostics": {
+            **state.get(
+                "diagnostics",
+                {},
             ),
-            evidence_summary=evidence_summary,
-            risks=risks[:10],
-            citations=citations,
-        ),
+
+            "brief": {
+                "status":
+                    "completed",
+
+                "issuer":
+                    issuer_name,
+
+                "market_observations":
+                    len(
+                        market_observations
+                    ),
+
+                "evidence_items":
+                    len(
+                        evidence
+                    ),
+
+                "risk_items":
+                    len(
+                        risks
+                    ),
+            },
+        },
     }

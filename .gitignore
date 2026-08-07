@@ -42,3 +42,33 @@ coverage/
 artifacts/search-index/*.faiss
 artifacts/search-index/*.json
 !artifacts/search-index/.gitkeep
+
+# Local environment
+.venv/
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary / backup files
+*.bak
+*.tmp
+*~
+*.corrupted.js
+*.before-*
+*.failed-*
+
+# Runtime artifacts
+/tmp/
+*.log

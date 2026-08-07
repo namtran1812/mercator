@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any, TypedDict
 from uuid import UUID
 
@@ -8,11 +8,49 @@ from pydantic import BaseModel, Field
 
 
 class AgentRequest(BaseModel):
-    question: str = Field(min_length=5, max_length=1_000)
+    question: str = Field(
+        min_length=5,
+        max_length=1_000,
+    )
+
     issuer: str | None = None
     cik: str | None = None
-    instrument_ids: list[int] = Field(default_factory=list)
-    maximum_evidence: int = Field(default=5, ge=1, le=20)
+
+    instrument_ids: list[int] = Field(
+        default_factory=list,
+    )
+
+    maximum_evidence: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+    )
+
+
+class AgentPlan(BaseModel):
+    intent: str
+
+    issuer: str | None = None
+
+    needs_research: bool = True
+    needs_prices: bool = True
+
+    needs_relative_value: bool = False
+    needs_risk: bool = False
+    needs_stress: bool = False
+    needs_hedge: bool = False
+    needs_etf_analytics: bool = False
+
+
+class SecurityResolution(BaseModel):
+    query: str
+
+    instrument_ids: list[int]
+
+    instrument_type: str | None = None
+    issuer_name: str | None = None
+
+    result_count: int = 0
 
 
 class IssuerResolution(BaseModel):
@@ -23,60 +61,245 @@ class IssuerResolution(BaseModel):
 
 class EvidenceItem(BaseModel):
     chunk_id: UUID
+
     issuer_name: str
     form_type: str
     filing_date: date
     accession_number: str
+
     section_name: str | None
     chunk_index: int
+
     text: str
     filing_url: str
     citation_label: str
+
     fused_score: float
 
 
 class PriceObservation(BaseModel):
     instrument_id: int
+
     clean_price: float
     dirty_price: float
+
     yield_to_maturity: float
     g_spread_bps: float
     modified_duration: float
+
     quality_score: float
     quality_status: str
+
     curve_version: int
     reference_version: int
 
 
 class RelativeValueResult(BaseModel):
     instrument_id: int
+
     spread_bps: float
     peer_average_spread_bps: float
     spread_difference_bps: float
+
     interpretation: str
+
+
+class KeyRateExposureSnapshot(BaseModel):
+    tenor: str
+    tenor_years: float
+    key_rate_duration: float
+    key_rate_dv01: float
+
+
+class PortfolioRiskSnapshot(BaseModel):
+    instrument_count: int
+
+    position_notional_per_instrument: float
+
+    total_market_value: float
+    total_dv01: float
+    total_cs01: float
+
+    portfolio_key_rate_dv01: list[
+        KeyRateExposureSnapshot
+    ]
+
+
+class TreasuryHedgeSnapshot(BaseModel):
+    tenor: str
+    tenor_years: float
+    portfolio_key_rate_dv01: float
+    hedge_instrument_dv01_per_million: float
+    recommended_notional: float
+
+
+class CreditHedgeSnapshot(BaseModel):
+    portfolio_cs01: float
+    hedge_cs01_per_million: float
+    recommended_notional: float
+    hedge_instrument: str
+
+
+class HedgeRecommendationSnapshot(BaseModel):
+    instrument_count: int
+
+    total_market_value: float
+    total_dv01: float
+    total_cs01: float
+
+    hedge_ratio: float
+
+    treasury_hedges: list[
+        TreasuryHedgeSnapshot
+    ]
+
+    credit_hedge: CreditHedgeSnapshot | None
+
+    residual_dv01: float
+    residual_cs01: float
+
+
+class StressTestInstrumentSnapshot(BaseModel):
+    instrument_id: int
+
+    market_value: float
+
+    treasury_pnl: float
+    credit_pnl: float
+    total_pnl: float
+
+
+class StressTestSnapshot(BaseModel):
+    instrument_count: int
+
+    total_market_value: float
+
+    total_treasury_pnl: float
+    total_credit_pnl: float
+    total_pnl: float
+
+    instruments: list[
+        StressTestInstrumentSnapshot
+    ]
+
+
+class EtfAnalyticsSnapshot(BaseModel):
+    instrument_id: int
+
+    fund_name: str
+    benchmark_name: str | None
+
+    constituent_count: int
+    priced_constituent_count: int
+
+    priced_weight: float
+    missing_weight: float
+
+    weighted_clean_price: float
+    weighted_yield_to_maturity: float
+    weighted_g_spread_bps: float
+    weighted_modified_duration: float
+    weighted_convexity: float
+
+    reference_nav: float | None
+    market_price: float | None
+
+    bid: float | None = None
+    ask: float | None = None
+    mid: float | None = None
+
+    bid_ask_spread: float | None = None
+    bid_ask_spread_bps: float | None = None
+
+    premium_discount_percent: float | None
+
+    quote_source: str | None = None
+    quote_timestamp: datetime | None = None
+    quote_reliability: float | None = None
+
+    expense_ratio: float | None
+    shares_outstanding: float | None
 
 
 class ClientBrief(BaseModel):
     issuer_name: str
     question: str
+
     summary: str
+
     market_observations: list[str]
     evidence_summary: list[str]
     risks: list[str]
+
     citations: list[str]
 
 
-class AgentState(TypedDict, total=False):
+class AgentState(
+    TypedDict,
+    total=False,
+):
     request: AgentRequest
+    plan: AgentPlan
 
     issuer: IssuerResolution
-    evidence: list[EvidenceItem]
-    prices: list[PriceObservation]
-    relative_value: list[RelativeValueResult]
+    security: SecurityResolution
+
+    evidence: list[
+        EvidenceItem
+    ]
+
+    prices: list[
+        PriceObservation
+    ]
+
+    relative_value: list[
+        RelativeValueResult
+    ]
+
+    risk: PortfolioRiskSnapshot
+    hedge: HedgeRecommendationSnapshot
+    stress: StressTestSnapshot
+    etf_analytics: EtfAnalyticsSnapshot
 
     errors: list[str]
+
     evidence_valid: bool
 
     brief: ClientBrief
 
-    diagnostics: dict[str, Any]
+    diagnostics: dict[
+        str,
+        Any,
+    ]
+
+
+class AgentQueryResponse(BaseModel):
+    brief: ClientBrief | None = None
+
+    plan: AgentPlan | None = None
+    security: SecurityResolution | None = None
+
+    prices: list[PriceObservation] = Field(
+        default_factory=list
+    )
+
+    relative_value: list[RelativeValueResult] = Field(
+        default_factory=list
+    )
+
+    risk: PortfolioRiskSnapshot | None = None
+    hedge: HedgeRecommendationSnapshot | None = None
+    stress: StressTestSnapshot | None = None
+    etf_analytics: EtfAnalyticsSnapshot | None = None
+
+    evidence: list[EvidenceItem] = Field(
+        default_factory=list
+    )
+
+    diagnostics: dict[str, Any] = Field(
+        default_factory=dict
+    )
+
+    errors: list[str] = Field(
+        default_factory=list
+    )

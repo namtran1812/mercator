@@ -10,7 +10,7 @@ from mercator_agent.state.models import IssuerResolution
 
 POSTGRES_DSN = os.getenv(
     "POSTGRES_DSN",
-    "postgresql://mercator:mercator@localhost:5432/mercator",
+    "postgresql://mercator:mercator@localhost:5433/mercator",
 )
 
 
