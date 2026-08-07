@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import clickhouse_connect
 
 from .config import (
@@ -9,6 +11,15 @@ from .config import (
     CLICKHOUSE_PORT,
     CLICKHOUSE_USERNAME,
 )
+from .demo_market import (
+    demo_latest_price,
+    demo_latest_prices,
+    demo_latest_prices_by_ids,
+    demo_market_quote,
+    demo_market_summary,
+    demo_price_history,
+)
+
 from .models import (
     LatestBondPrice,
     MarketQuoteSnapshot,
@@ -20,6 +31,23 @@ from .models import (
 
 class MarketRepository:
     def __init__(self) -> None:
+        self._demo_mode = (
+            os.getenv(
+                "MERCATOR_DEMO_MODE",
+                "false",
+            ).lower()
+            in {
+                "1",
+                "true",
+                "yes",
+                "on",
+            }
+        )
+
+        if self._demo_mode:
+            self._client = None
+            return
+
         self._client = clickhouse_connect.get_client(
             host=CLICKHOUSE_HOST,
             port=CLICKHOUSE_PORT,
@@ -33,6 +61,11 @@ class MarketRepository:
         self,
         instrument_id: int,
     ) -> MarketQuoteSnapshot | None:
+        if self._demo_mode:
+            return demo_market_quote(
+                instrument_id
+            )
+
         result = self._client.query(
             """
             SELECT
@@ -92,6 +125,13 @@ class MarketRepository:
         limit: int,
         minimum_quality_score: float,
     ) -> list[LatestBondPrice]:
+        if self._demo_mode:
+            return demo_latest_prices(
+                limit=limit,
+                minimum_quality_score=
+                    minimum_quality_score,
+            )
+
         result = self._client.query(
             """
             SELECT
@@ -167,6 +207,9 @@ class MarketRepository:
         ]
 
     def market_summary(self) -> MarketSummary:
+        if self._demo_mode:
+            return demo_market_summary()
+
         result = self._client.query(
             """
             WITH latest AS
@@ -217,6 +260,15 @@ class MarketRepository:
         instrument_id: int,
         limit: int,
     ) -> list[PriceHistoryPoint]:
+        if self._demo_mode:
+            return demo_price_history(
+                instrument_id=
+                    instrument_id,
+
+                limit=
+                    limit,
+            )
+
         result = self._client.query(
             """
             SELECT
@@ -272,6 +324,11 @@ class MarketRepository:
     ) -> list[LatestBondPrice]:
         if not instrument_ids:
             return []
+
+        if self._demo_mode:
+            return demo_latest_prices_by_ids(
+                instrument_ids
+            )
 
         result = self._client.query(
             """

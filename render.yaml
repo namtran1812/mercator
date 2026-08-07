@@ -1,87 +1,14 @@
 services:
-  - type: pserv
-    name: mercator-reference-data
-    runtime: python
-    plan: starter
-    buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=services/reference-data uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    autoDeployTrigger: commit
-    envVars:
-      - key: POSTGRES_DSN
-        fromDatabase:
-          name: mercator-postgres
-          property: connectionString
-
-  - type: pserv
-    name: mercator-agent
-    runtime: python
-    plan: starter
-    buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=services/agent-runtime uvicorn mercator_agent.main:app --host 0.0.0.0 --port $PORT
-    autoDeployTrigger: commit
-    envVars:
-      - key: POSTGRES_DSN
-        fromDatabase:
-          name: mercator-postgres
-          property: connectionString
-
-      - key: REFERENCE_DATA_URL
-        sync: false
-
-      - key: MARKET_API_URL
-        sync: false
-
-      - key: RESEARCH_SEARCH_URL
-        sync: false
-
-      - key: CLICKHOUSE_HOST
-        sync: false
-
-      - key: CLICKHOUSE_PORT
-        value: "8123"
-
-      - key: CLICKHOUSE_DATABASE
-        value: mercator
-
-      - key: CLICKHOUSE_USERNAME
-        sync: false
-
-      - key: CLICKHOUSE_PASSWORD
-        sync: false
-
-      - key: LLM_PROVIDER
-        value: disabled
-
   - type: web
     name: mercator
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=services/market-api uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: bash scripts/start-production.sh
     healthCheckPath: /health
-    autoDeployTrigger: commit
     envVars:
-      - key: REFERENCE_DATA_URL
+      - key: MERCATOR_DEMO_MODE
+        value: "true"
+
+      - key: POSTGRES_DSN
         sync: false
-
-      - key: AGENT_RUNTIME_URL
-        sync: false
-
-      - key: CLICKHOUSE_HOST
-        sync: false
-
-      - key: CLICKHOUSE_PORT
-        value: "8123"
-
-      - key: CLICKHOUSE_DATABASE
-        value: mercator
-
-      - key: CLICKHOUSE_USERNAME
-        sync: false
-
-      - key: CLICKHOUSE_PASSWORD
-        sync: false
-
-databases:
-  - name: mercator-postgres
-    plan: free

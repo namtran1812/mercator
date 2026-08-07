@@ -7,11 +7,94 @@ import clickhouse_connect
 from mercator_agent.state.models import PriceObservation
 
 
+
+def _demo_latest_prices(
+    instrument_ids: list[int],
+) -> list[PriceObservation]:
+    return [
+        PriceObservation(
+            instrument_id=
+                instrument_id,
+
+            clean_price=
+                760.0
+                + (
+                    instrument_id
+                    * 37
+                )
+                % 360,
+
+            dirty_price=
+                762.0
+                + (
+                    instrument_id
+                    * 37
+                )
+                % 360,
+
+            yield_to_maturity=
+                0.045
+                + (
+                    instrument_id
+                    % 40
+                )
+                * 0.001,
+
+            g_spread_bps=
+                85.0
+                + (
+                    instrument_id
+                    * 29
+                )
+                % 315,
+
+            modified_duration=
+                2.0
+                + (
+                    instrument_id
+                    % 145
+                )
+                / 10.0,
+
+            quality_score=
+                0.95,
+
+            quality_status=
+                "VALID",
+
+            curve_version=
+                2,
+
+            reference_version=
+                1,
+        )
+        for instrument_id
+        in instrument_ids
+    ]
+
 def latest_prices(
     instrument_ids: list[int],
 ) -> list[PriceObservation]:
     if not instrument_ids:
         return []
+
+    demo_mode = (
+        os.getenv(
+            "MERCATOR_DEMO_MODE",
+            "false",
+        ).lower()
+        in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+    )
+
+    if demo_mode:
+        return _demo_latest_prices(
+            instrument_ids
+        )
 
     client = clickhouse_connect.get_client(
         host=os.getenv(
