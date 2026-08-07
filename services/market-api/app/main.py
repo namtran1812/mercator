@@ -111,6 +111,13 @@ AGENT_RUNTIME_URL = os.getenv(
 
 
 
+@app.get("/")
+def root() -> FileResponse:
+    return FileResponse(
+        WORKBENCH_PATH
+    )
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {
