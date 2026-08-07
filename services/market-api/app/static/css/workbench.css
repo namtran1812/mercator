@@ -5893,3 +5893,83 @@ button:disabled,
 
   height: 36px;
 }
+
+
+/* ============================================================
+   MERCATOR — FINAL WORKBENCH ACTION CONTROLS
+   ============================================================ */
+
+#startButton,
+#stopButton,
+#scenarioButton,
+#exportButton {
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  height: 38px !important;
+  min-height: 38px !important;
+
+  padding: 0 18px !important;
+
+  border: 1px solid var(--terminal-line-strong) !important;
+  border-radius: 2px !important;
+
+  background: transparent !important;
+  color: var(--terminal-text) !important;
+
+  font: inherit !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+
+  opacity: 1 !important;
+}
+
+
+/* Start */
+
+#startButton {
+  background: var(--terminal-accent) !important;
+  border-color: var(--terminal-accent) !important;
+  color: var(--terminal-bg) !important;
+}
+
+
+/* Stop */
+
+#stopButton {
+  background: transparent !important;
+  border-color: var(--terminal-negative) !important;
+  color: var(--terminal-negative) !important;
+}
+
+
+/* Secondary */
+
+#scenarioButton,
+#exportButton {
+  background: transparent !important;
+  border-color: var(--terminal-line-strong) !important;
+  color: var(--terminal-text) !important;
+}
+
+
+/* Hover */
+
+#startButton:hover {
+  opacity: 0.9 !important;
+}
+
+#stopButton:hover {
+  background: rgba(199, 143, 143, 0.08) !important;
+}
+
+#scenarioButton:hover,
+#exportButton:hover {
+  background: var(--terminal-surface-alt) !important;
+}
