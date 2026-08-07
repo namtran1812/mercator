@@ -195,21 +195,11 @@
       background: var(--terminal-surface-alt);
     }
 
-    .button.primary {
-      border-color: var(--terminal-accent);
-      background: var(--terminal-accent);
-      color: white;
-    }
+    
 
-    .button.primary:hover {
-      background: var(--terminal-accent);
-    }
+    
 
-    .button.danger {
-      border-color: var(--terminal-negative);
-      background: var(--terminal-negative);
-      color: var(--terminal-negative);
-    }
+    
 
     .metric {
       padding: 17px;
@@ -5409,17 +5399,7 @@ button:hover,
     var(--terminal-text);
 }
 
-.button.primary,
-.primary-button {
-  background:
-    var(--terminal-accent);
 
-  color:
-    var(--terminal-bg);
-
-  border-color:
-    var(--terminal-accent);
-}
 
 th,
 .panel-meta,
@@ -5731,4 +5711,185 @@ main > *,
     padding-right:
       var(--mercator-page-padding) !important;
   }
+}
+
+
+/* ============================================================
+   MERCATOR — CANONICAL TERMINAL BUTTONS
+   ============================================================ */
+
+button,
+.button {
+  box-sizing: border-box;
+
+  height: 36px;
+  min-height: 36px;
+
+  padding:
+    0
+    14px;
+
+  border:
+    1px solid
+    var(--terminal-line);
+
+  border-radius: 3px;
+
+  background:
+    transparent;
+
+  color:
+    var(--terminal-text);
+
+  font-family:
+    var(--terminal-font);
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+
+  letter-spacing: 0;
+
+  box-shadow: none;
+  text-shadow: none;
+
+  cursor: pointer;
+}
+
+
+/* Primary action */
+
+button.primary,
+.button.primary {
+  border-color:
+    var(--terminal-accent);
+
+  background:
+    var(--terminal-accent);
+
+  color:
+    var(--terminal-bg);
+}
+
+
+/* Danger action:
+   outline only, never filled red */
+
+button.danger,
+.button.danger {
+  border-color:
+    var(--terminal-negative);
+
+  background:
+    transparent;
+
+  color:
+    var(--terminal-negative);
+}
+
+
+/* Standard secondary actions */
+
+button:not(.primary):not(.danger),
+.button:not(.primary):not(.danger) {
+  background:
+    transparent;
+
+  color:
+    var(--terminal-text);
+}
+
+
+/* Hover */
+
+button:hover,
+.button:hover {
+  background:
+    var(--terminal-surface);
+
+  border-color:
+    var(--terminal-text);
+}
+
+
+/* Keep primary visually stable */
+
+button.primary:hover,
+.button.primary:hover {
+  background:
+    var(--terminal-accent);
+
+  border-color:
+    var(--terminal-accent);
+
+  opacity: 0.9;
+}
+
+
+/* Keep danger subtle */
+
+button.danger:hover,
+.button.danger:hover {
+  background:
+    transparent;
+
+  border-color:
+    var(--terminal-negative);
+
+  color:
+    var(--terminal-negative);
+
+  opacity: 0.85;
+}
+
+
+/* Disabled */
+
+button:disabled,
+.button:disabled {
+  background:
+    transparent;
+
+  border-color:
+    var(--terminal-line);
+
+  color:
+    var(--terminal-muted);
+
+  opacity: 0.45;
+
+  cursor: default;
+}
+
+
+/* Top action row */
+
+.action-bar,
+.toolbar,
+.workspace-actions,
+.stream-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+
+/* Prevent legacy rules from stretching buttons */
+
+.action-bar button,
+.action-bar .button,
+.toolbar button,
+.toolbar .button,
+.workspace-actions button,
+.workspace-actions .button,
+.stream-actions button,
+.stream-actions .button {
+  width: auto;
+  min-width: 0;
+
+  height: 36px;
 }
