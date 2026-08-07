@@ -805,38 +805,6 @@ The planner avoids unnecessary research, stress, hedge, or portfolio computation
 
 ---
 
-## Status
-
-Mercator currently includes working implementations of:
-
-- [x] Versioned fixed-income reference data
-- [x] Corporate-bond universe
-- [x] Fixed-income ETF universe
-- [x] ETF basket modeling
-- [x] Evaluated pricing
-- [x] Historical pricing
-- [x] Market summary analytics
-- [x] Relative-value analytics
-- [x] Carry and roll
-- [x] Portfolio risk
-- [x] Risk decomposition
-- [x] Historical VaR
-- [x] Stress testing
-- [x] Scenario analysis
-- [x] Hedge recommendations
-- [x] Portfolio optimization
-- [x] Risk-budget optimization
-- [x] Market replay
-- [x] Agent planning and routing
-- [x] ETF agent analytics
-- [x] Research storage/search infrastructure
-- [x] Terminal-style research workstation
-- [x] Public deployment
-
----
-
 ## Disclaimer
 
-Mercator is an engineering and research project built with synthetic and simulated market data.
-
-It is not connected to a live trading venue, does not provide investment advice, and should not be used for production trading or investment decisions.
+Mercator is an engineering and research project built with synthetic and simulated market data. It is not connected to a  live trading venue, does not provide investment advice, and should not be used for production trading or investment decisions.
