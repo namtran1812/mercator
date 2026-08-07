@@ -1,0 +1,20 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+>
+  <rect
+    x="2"
+    y="2"
+    width="60"
+    height="60"
+    rx="6"
+    fill="#0b0c0c"
+    stroke="#b5c5a5"
+    stroke-width="3"
+  />
+
+  <path
+    d="M15 45V19h7l10 15 10-15h7v26h-7V30L32 44 22 30v15z"
+    fill="#b5c5a5"
+  />
+</svg>
