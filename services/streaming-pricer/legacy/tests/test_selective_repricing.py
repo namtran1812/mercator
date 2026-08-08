@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from app.consumer import apply_curve_update
+from legacy.consumer import apply_curve_update
 from app.models import CurveUpdate
 
 

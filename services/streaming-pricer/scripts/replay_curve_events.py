@@ -141,17 +141,46 @@ def main() -> None:
 
             time.sleep(replay_delay)
 
+        tenor_to_node = {
+            "3M": (1, 0.25),
+            "6M": (2, 0.50),
+            "1Y": (3, 1.00),
+            "2Y": (4, 2.00),
+            "3Y": (5, 3.00),
+            "5Y": (6, 5.00),
+            "7Y": (7, 7.00),
+            "10Y": (8, 10.00),
+            "30Y": (9, 30.00),
+        }
+
+        node_id, maturity_years = (
+            tenor_to_node[tenor]
+        )
+
+        new_version = int(curve_version)
+        previous_version = new_version - 1
+
         replay_event = {
             "event_id": str(uuid.uuid4()),
             "event_time":
                 datetime.now(
                     event_time.tzinfo
                 ).isoformat(),
-            "curve_version":
-                int(curve_version),
-            "tenor": tenor,
-            "old_rate": float(old_rate),
-            "new_rate": float(new_rate),
+            "previous_version":
+                previous_version,
+            "new_version":
+                new_version,
+            "updates": [
+                {
+                    "node_id": node_id,
+                    "maturity_years":
+                        maturity_years,
+                    "old_rate":
+                        float(old_rate),
+                    "new_rate":
+                        float(new_rate),
+                }
+            ],
         }
 
         producer.produce(

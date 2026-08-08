@@ -33,6 +33,20 @@ public:
         const YieldCurve& updated_curve
     ) const;
 
+    [[nodiscard]] std::vector<InstrumentId>
+    affected_instruments(
+        const CurveUpdateEvent& event
+    ) const;
+
+    [[nodiscard]] std::vector<EvaluatedPrice>
+    reprice_all(
+        const CurveUpdateEvent& event,
+        const YieldCurve& updated_curve
+    ) const;
+
+    [[nodiscard]] std::size_t
+    instrument_count() const noexcept;
+
 private:
     Date valuation_date_;
     PricingDependencyGraph dependency_graph_;

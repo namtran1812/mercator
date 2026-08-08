@@ -72,3 +72,4 @@ __pycache__/
 # Runtime artifacts
 /tmp/
 *.log
+.env.local

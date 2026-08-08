@@ -124,19 +124,42 @@ def main() -> None:
             old_rate + shock_bps / 10_000.0,
         )
 
+        previous_version = curve_version
         curve_version += 1
         rates[tenor] = new_rate
 
         event_id = str(uuid.uuid4())
         event_time = datetime.now(timezone.utc)
 
+        tenor_to_node = {
+            "3M": (1, 0.25),
+            "6M": (2, 0.50),
+            "1Y": (3, 1.00),
+            "2Y": (4, 2.00),
+            "3Y": (5, 3.00),
+            "5Y": (6, 5.00),
+            "7Y": (7, 7.00),
+            "10Y": (8, 10.00),
+            "30Y": (9, 30.00),
+        }
+
+        node_id, maturity_years = (
+            tenor_to_node[tenor]
+        )
+
         event = {
             "event_id": event_id,
             "event_time": event_time.isoformat(),
-            "curve_version": curve_version,
-            "tenor": tenor,
-            "old_rate": old_rate,
-            "new_rate": new_rate,
+            "previous_version": previous_version,
+            "new_version": curve_version,
+            "updates": [
+                {
+                    "node_id": node_id,
+                    "maturity_years": maturity_years,
+                    "old_rate": old_rate,
+                    "new_rate": new_rate,
+                }
+            ],
         }
 
         producer.produce(
@@ -155,7 +178,7 @@ def main() -> None:
                 [
                     event_time,
                     event_id,
-                    curve_version,
+                    event["new_version"],
                     "UST",
                     tenor,
                     old_rate,

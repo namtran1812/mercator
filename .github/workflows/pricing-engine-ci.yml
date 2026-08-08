@@ -1,0 +1,49 @@
+name: Pricing Engine CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+jobs:
+  pricing-engine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y \
+            cmake \
+            g++ \
+            pkg-config \
+            nlohmann-json3-dev \
+            librdkafka-dev \
+            libpq-dev \
+            libcurl4-openssl-dev \
+            libhiredis-dev
+
+      - name: Configure
+        run: |
+          cmake \
+            -S services/pricing-engine \
+            -B build/pricing-engine \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cmake \
+            --build build/pricing-engine \
+            --parallel
+
+      - name: Test
+        run: |
+          ctest \
+            --test-dir build/pricing-engine \
+            --output-on-failure
