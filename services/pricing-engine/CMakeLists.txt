@@ -74,6 +74,8 @@ add_library(
     src/adaptive_repricing.cpp
     src/curve_event_parser.cpp
     src/curve_replay.cpp
+    src/curve_replay_sink.cpp
+    src/durable_curve_commit.cpp
     src/version_guard.cpp
     src/postgres_instrument_loader.cpp
     src/clickhouse_price_sink.cpp
@@ -629,4 +631,25 @@ target_link_libraries(
     PRIVATE
         mercator-pricing-core
         nlohmann_json::nlohmann_json
+)
+
+
+# ============================================================
+# Durable curve commit tests
+# ============================================================
+
+add_executable(
+    mercator-durable-curve-commit-tests
+    tests/durable_curve_commit_test.cpp
+)
+
+target_link_libraries(
+    mercator-durable-curve-commit-tests
+    PRIVATE
+    mercator-pricing-core
+)
+
+add_test(
+    NAME mercator-durable-curve-commit-tests
+    COMMAND mercator-durable-curve-commit-tests
 )

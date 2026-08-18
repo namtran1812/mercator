@@ -30,6 +30,30 @@ CurveUpdateEvent parse_curve_update_event(
             .event_id =
                 document.at("event_id").get<std::string>(),
 
+            .event_time =
+                document.value(
+                    "event_time",
+                    std::string{}
+                ),
+
+            .curve_name =
+                document.value(
+                    "curve_name",
+                    std::string{"UST"}
+                ),
+
+            .source =
+                document.value(
+                    "source",
+                    std::string{"curve-stream"}
+                ),
+
+            .scenario_name =
+                document.value(
+                    "scenario_name",
+                    std::string{"live"}
+                ),
+
             .previous_version =
                 document.at("previous_version")
                     .get<std::uint64_t>(),

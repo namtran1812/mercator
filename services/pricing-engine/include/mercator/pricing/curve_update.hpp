@@ -17,8 +17,19 @@ struct CurveNodeUpdate {
 
 struct CurveUpdateEvent {
     std::string event_id;
+
+    /*
+     * Replay/audit metadata travels with the event rather
+     * than being synthesized by persistence sinks.
+     */
+    std::string event_time;
+    std::string curve_name;
+    std::string source;
+    std::string scenario_name;
+
     std::uint64_t previous_version;
     std::uint64_t new_version;
+
     std::vector<CurveNodeUpdate> updates;
 };
 

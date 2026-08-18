@@ -2,6 +2,8 @@
 #include "mercator/pricing/cashflow.hpp"
 #include "mercator/pricing/clickhouse_price_sink.hpp"
 #include "mercator/pricing/curve_event_parser.hpp"
+#include "mercator/pricing/curve_replay_sink.hpp"
+#include "mercator/pricing/durable_curve_commit.hpp"
 #include "mercator/pricing/dependency_graph.hpp"
 #include "mercator/pricing/dependency_resolver.hpp"
 #include "mercator/pricing/repricing_service.hpp"
@@ -405,6 +407,14 @@ int main() {
     };
 
 
+    const CurveReplaySink replay_sink{
+        clickhouse_url,
+        clickhouse_database,
+        clickhouse_username,
+        clickhouse_password,
+    };
+
+
     const std::string redis_host =
         environment(
             "REDIS_HOST",
@@ -440,6 +450,20 @@ int main() {
                 8
             )
         );
+
+
+    const std::uint64_t checkpoint_interval =
+        environment_uint64(
+            "MERCATOR_CURVE_CHECKPOINT_INTERVAL",
+            100
+        );
+
+
+    const bool fail_after_curve_event =
+        environment_uint64(
+            "MERCATOR_FAIL_AFTER_CURVE_EVENT",
+            0
+        ) != 0;
 
 
     const AdaptiveRepricingPolicy policy{
@@ -542,6 +566,13 @@ int main() {
                 : std::to_string(
                     pricing_workers
                 )
+        )
+        << "\n"
+        << "fail_after_curve_event="
+        << (
+            fail_after_curve_event
+                ? "true"
+                : "false"
         )
         << "\n";
 
@@ -737,97 +768,171 @@ int main() {
 
 
             /*
-             * No durable sink yet.
-             *
-             * Therefore version advancement and Kafka
-             * acknowledgement happen only after pricing
-             * itself succeeds.
-             */
-            /*
              * Durable boundary:
              *
-             * Do not advance the in-memory curve version
-             * and do not commit the Kafka offset until all
-             * evaluated prices have been accepted by
-             * ClickHouse.
+             * Persist the causal curve transition before
+             * evaluated prices. Do not advance local curve
+             * state or commit Kafka until all durable writes
+             * have succeeded.
              */
             const auto clickhouse_start =
                 steady_clock::now();
 
-            price_sink.insert(
-                prices
-            );
-
-            const auto clickhouse_end =
-                steady_clock::now();
-
-            const double clickhouse_ms =
-                duration<
-                    double,
-                    std::milli
-                >(
-                    clickhouse_end
-                    - clickhouse_start
-                ).count();
+            double clickhouse_ms = 0.0;
+            double redis_ms = 0.0;
+            double kafka_commit_ms = 0.0;
 
 
-            /*
-             * Publish only after durable price persistence.
-             *
-             * Redis represents latest state + live
-             * notification. ClickHouse remains authoritative.
-             */
-            const auto redis_start =
-                steady_clock::now();
+            execute_durable_curve_commit(
+                DurableCurveCommitHooks{
+                    .persist_curve_event =
+                        [&] {
+                            const auto start =
+                                std::chrono::steady_clock::now();
 
-            redis_sink.publish(
-                prices,
-                event
-            );
+                            replay_sink.insert_event(
+                                event
+                            );
 
-            const auto redis_end =
-                steady_clock::now();
+                            const auto end =
+                                std::chrono::steady_clock::now();
 
-            const double redis_ms =
-                duration<
-                    double,
-                    std::milli
-                >(
-                    redis_end
-                    - redis_start
-                ).count();
+                            clickhouse_ms +=
+                                std::chrono::duration<
+                                    double,
+                                    std::milli
+                                >(
+                                    end - start
+                                ).count();
 
+                            /*
+                             * Test-only crash-window injection.
+                             *
+                             * The causal curve event is durable,
+                             * but no evaluated prices, checkpoint,
+                             * Redis state, local version advance,
+                             * or Kafka offset commit may occur.
+                             */
+                            if (fail_after_curve_event) {
+                                throw std::runtime_error(
+                                    "injected failure after "
+                                    "curve-event persistence"
+                                );
+                            }
+                        },
 
-            version_guard.commit(
-                event
-            );
+                    .persist_prices =
+                        [&] {
+                            const auto start =
+                                std::chrono::steady_clock::now();
 
+                            price_sink.insert(
+                                prices
+                            );
 
-            curve_points =
-                std::move(
-                    next_curve_points
-                );
+                            const auto end =
+                                std::chrono::steady_clock::now();
 
+                            clickhouse_ms +=
+                                std::chrono::duration<
+                                    double,
+                                    std::milli
+                                >(
+                                    end - start
+                                ).count();
+                        },
 
-            const auto kafka_commit_start =
-                steady_clock::now();
+                    .persist_checkpoint =
+                        [&] {
+                            const auto start =
+                                std::chrono::steady_clock::now();
 
-            commit_message(
-                consumer.get(),
-                message
+                            if (
+                                replay_sink.should_checkpoint(
+                                    event.new_version,
+                                    checkpoint_interval
+                                )
+                            ) {
+                                replay_sink.insert_checkpoint(
+                                    event,
+                                    valuation_date,
+                                    next_curve_points
+                                );
+                            }
+
+                            const auto end =
+                                std::chrono::steady_clock::now();
+
+                            clickhouse_ms +=
+                                std::chrono::duration<
+                                    double,
+                                    std::milli
+                                >(
+                                    end - start
+                                ).count();
+                        },
+
+                    .publish_latest_state =
+                        [&] {
+                            const auto start =
+                                std::chrono::steady_clock::now();
+
+                            redis_sink.publish(
+                                prices,
+                                event
+                            );
+
+                            const auto end =
+                                std::chrono::steady_clock::now();
+
+                            redis_ms =
+                                std::chrono::duration<
+                                    double,
+                                    std::milli
+                                >(
+                                    end - start
+                                ).count();
+                        },
+
+                    .commit_curve_version =
+                        [&] {
+                            version_guard.commit(
+                                event
+                            );
+                        },
+
+                    .install_curve_state =
+                        [&] {
+                            curve_points =
+                                next_curve_points;
+                        },
+
+                    .commit_kafka_offset =
+                        [&] {
+                            const auto start =
+                                std::chrono::steady_clock::now();
+
+                            commit_message(
+                                consumer.get(),
+                                message
+                            );
+
+                            const auto end =
+                                std::chrono::steady_clock::now();
+
+                            kafka_commit_ms =
+                                std::chrono::duration<
+                                    double,
+                                    std::milli
+                                >(
+                                    end - start
+                                ).count();
+                        },
+                }
             );
 
             const auto processing_end =
                 steady_clock::now();
-
-            const double kafka_commit_ms =
-                duration<
-                    double,
-                    std::milli
-                >(
-                    processing_end
-                    - kafka_commit_start
-                ).count();
 
             const double e2e_ms =
                 duration<
