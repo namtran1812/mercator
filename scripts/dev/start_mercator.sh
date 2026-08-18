@@ -63,12 +63,18 @@ start_service \
     "python -m uvicorn app.main:app --app-dir services/market-api --host 127.0.0.1 --port 8005"
 
 
+start_service \
+    "streaming-pricer" \
+    "8006" \
+    "REDIS_URL=redis://127.0.0.1:6380/0 python -m uvicorn app.main:app --app-dir services/streaming-pricer --host 127.0.0.1 --port 8006"
+
+
 echo
 echo "============================================================"
 echo "MERCATOR"
 echo "============================================================"
 
-for port in 8001 8003 8005 11434
+for port in 8001 8003 8005 8006 11434
 do
     printf "Port %-5s " "$port"
 
