@@ -13,6 +13,25 @@ void apply_curve_update(
     const CurveUpdateEvent& event
 );
 
+
+struct RecoveredCurveState {
+    std::uint64_t version;
+    std::vector<CurvePoint> points;
+};
+
+[[nodiscard]]
+RecoveredCurveState recover_curve_state(
+    std::vector<CurvePoint> checkpoint_points,
+    std::uint64_t checkpoint_version,
+    const std::vector<CurveUpdateEvent>& events
+);
+
+[[nodiscard]]
+double recovered_curve_rate(
+    const RecoveredCurveState& state,
+    double maturity_years
+);
+
 [[nodiscard]]
 std::vector<CurvePoint> replay_curve_updates(
     std::vector<CurvePoint> initial_points,

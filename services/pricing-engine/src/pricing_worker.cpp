@@ -3,6 +3,8 @@
 #include "mercator/pricing/clickhouse_price_sink.hpp"
 #include "mercator/pricing/curve_event_parser.hpp"
 #include "mercator/pricing/curve_replay_sink.hpp"
+#include "mercator/pricing/curve_recovery_store.hpp"
+#include "mercator/pricing/curve_replay.hpp"
 #include "mercator/pricing/durable_curve_commit.hpp"
 #include "mercator/pricing/dependency_graph.hpp"
 #include "mercator/pricing/dependency_resolver.hpp"
@@ -415,6 +417,14 @@ int main() {
     };
 
 
+    const CurveRecoveryStore recovery_store{
+        clickhouse_url,
+        clickhouse_database,
+        clickhouse_username,
+        clickhouse_password,
+    };
+
+
     const std::string redis_host =
         environment(
             "REDIS_HOST",
@@ -491,9 +501,40 @@ int main() {
     auto curve_points =
         initial_curve_points();
 
+    std::uint64_t recovered_version =
+        initial_version;
+
+    if (
+        const auto checkpoint =
+            recovery_store.recover_latest(
+                "UST"
+            )
+    ) {
+        const auto events =
+            recovery_store.recover_events_after(
+                "UST",
+                checkpoint->version
+            );
+
+        auto recovered =
+            recover_curve_state(
+                checkpoint->points,
+                checkpoint->version,
+                events
+            );
+
+        curve_points =
+            std::move(
+                recovered.points
+            );
+
+        recovered_version =
+            recovered.version;
+    }
+
 
     CurveVersionGuard version_guard{
-        initial_version
+        recovered_version
     };
 
 
@@ -554,7 +595,19 @@ int main() {
         << repricing_service.instrument_count()
         << "\n"
         << "curve_version="
-        << initial_version
+        << recovered_version
+        << "\n"
+        << "curve_nodes="
+        << curve_points.size()
+        << "\n"
+        << "curve_30y_rate="
+        << recovered_curve_rate(
+            RecoveredCurveState{
+                recovered_version,
+                curve_points
+            },
+            30.0
+        )
         << "\n"
         << "full_reprice_fraction="
         << policy.full_reprice_fraction
@@ -775,9 +828,6 @@ int main() {
              * state or commit Kafka until all durable writes
              * have succeeded.
              */
-            const auto clickhouse_start =
-                steady_clock::now();
-
             double clickhouse_ms = 0.0;
             double redis_ms = 0.0;
             double kafka_commit_ms = 0.0;

@@ -75,6 +75,7 @@ add_library(
     src/curve_event_parser.cpp
     src/curve_replay.cpp
     src/curve_replay_sink.cpp
+    src/curve_recovery_store.cpp
     src/durable_curve_commit.cpp
     src/version_guard.cpp
     src/postgres_instrument_loader.cpp
@@ -652,4 +653,25 @@ target_link_libraries(
 add_test(
     NAME mercator-durable-curve-commit-tests
     COMMAND mercator-durable-curve-commit-tests
+)
+
+
+# ============================================================
+# Curve recovery tests
+# ============================================================
+
+add_executable(
+    mercator-curve-recovery-tests
+    tests/curve_recovery_test.cpp
+)
+
+target_link_libraries(
+    mercator-curve-recovery-tests
+    PRIVATE
+    mercator-pricing-core
+)
+
+add_test(
+    NAME mercator-curve-recovery-tests
+    COMMAND mercator-curve-recovery-tests
 )

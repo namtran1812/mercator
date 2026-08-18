@@ -130,3 +130,74 @@ std::vector<CurvePoint> replay_curve_updates(
 }
 
 }  // namespace mercator::pricing
+
+
+namespace mercator::pricing {
+
+RecoveredCurveState recover_curve_state(
+    std::vector<CurvePoint> checkpoint_points,
+    const std::uint64_t checkpoint_version,
+    const std::vector<CurveUpdateEvent>& events
+) {
+    if (events.empty()) {
+        return RecoveredCurveState{
+            checkpoint_version,
+            std::move(checkpoint_points),
+        };
+    }
+
+    std::uint64_t target_version =
+        checkpoint_version;
+
+    for (const auto& event : events) {
+        if (event.new_version > target_version) {
+            target_version =
+                event.new_version;
+        }
+    }
+
+    auto recovered =
+        replay_curve_updates(
+            std::move(
+                checkpoint_points
+            ),
+            checkpoint_version,
+            events,
+            target_version
+        );
+
+    return RecoveredCurveState{
+        target_version,
+        std::move(recovered),
+    };
+}
+
+}  // namespace mercator::pricing
+
+
+namespace mercator::pricing {
+
+double recovered_curve_rate(
+    const RecoveredCurveState& state,
+    const double maturity_years
+) {
+    for (const auto& point : state.points) {
+        if (
+            std::abs(
+                point.maturity_years
+                - maturity_years
+            ) < 1e-12
+        ) {
+            return point.zero_rate;
+        }
+    }
+
+    throw std::runtime_error(
+        "recovered curve maturity not found: "
+        + std::to_string(
+            maturity_years
+        )
+    );
+}
+
+}  // namespace mercator::pricing
