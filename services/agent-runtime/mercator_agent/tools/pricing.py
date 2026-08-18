@@ -849,6 +849,200 @@ def historical_price_as_of(
     )
 
 
+
+def replay_curve_state(
+    curve_version: int,
+    *,
+    curve_name: str = "UST",
+) -> tuple[
+    list[dict[str, float]],
+    list[CurveEventObservation],
+]:
+    """
+    Reconstruct the complete durable curve state at curve_version.
+
+    Recovery starts from the newest persisted checkpoint at or before
+    the requested version and applies only subsequent curve events.
+
+    The event chain is validated so replay fails closed on missing or
+    inconsistent durable history rather than silently constructing a
+    partial curve.
+    """
+    if curve_version < 0:
+        raise ValueError(
+            "curve_version must be non-negative"
+        )
+
+    client = _clickhouse_client()
+
+    checkpoint_result = client.query(
+        """
+        SELECT
+            curve_version,
+            maturity_years,
+            zero_rates
+        FROM curve_checkpoints
+        WHERE curve_name = {curve_name:String}
+          AND curve_version <= {curve_version:UInt64}
+        ORDER BY curve_version DESC
+        LIMIT 1
+        """,
+        parameters={
+            "curve_name": curve_name,
+            "curve_version": curve_version,
+        },
+    )
+
+    checkpoint_version = 0
+    points: dict[float, float] = {}
+
+    if checkpoint_result.result_rows:
+        row = checkpoint_result.result_rows[0]
+
+        checkpoint_version = int(row[0])
+
+        maturities = [
+            float(value)
+            for value in row[1]
+        ]
+        rates = [
+            float(value)
+            for value in row[2]
+        ]
+
+        if len(maturities) != len(rates):
+            raise ValueError(
+                "Persisted curve checkpoint contains mismatched "
+                "maturity and rate arrays."
+            )
+
+        points = dict(zip(maturities, rates))
+
+    event_result = client.query(
+        """
+        SELECT
+            event_time,
+            event_id,
+            curve_version,
+            previous_version,
+            curve_name,
+            tenor,
+            maturity_years,
+            old_rate,
+            new_rate,
+            source,
+            scenario_name,
+            recorded_at
+        FROM curve_events
+        WHERE curve_name = {curve_name:String}
+          AND curve_version > {checkpoint_version:UInt64}
+          AND curve_version <= {curve_version:UInt64}
+        ORDER BY
+            curve_version ASC,
+            recorded_at ASC,
+            event_id ASC
+        """,
+        parameters={
+            "curve_name": curve_name,
+            "checkpoint_version": checkpoint_version,
+            "curve_version": curve_version,
+        },
+    )
+
+    events: list[CurveEventObservation] = []
+
+    # A curve version may contain multiple persisted rows. Validate the
+    # version transition once per distinct version while applying every
+    # node update belonging to that version.
+    current_version = checkpoint_version
+    seen_event_ids: set[str] = set()
+    seen_versions: set[int] = set()
+
+    for row in event_result.result_rows:
+        event_id = str(row[1])
+
+        # MergeTree tables can expose duplicate deliveries. Event IDs
+        # are the durable idempotency key for replay.
+        if event_id in seen_event_ids:
+            continue
+
+        seen_event_ids.add(event_id)
+
+        event_version = int(row[2])
+        previous_version = int(row[3])
+
+        if event_version not in seen_versions:
+            if previous_version != current_version:
+                raise ValueError(
+                    "Curve replay history is not contiguous: "
+                    f"version {event_version} declares previous "
+                    f"version {previous_version}, expected "
+                    f"{current_version}."
+                )
+
+            seen_versions.add(event_version)
+            current_version = event_version
+
+        maturity_years = float(row[6])
+
+        if maturity_years <= 0.0:
+            # Compatibility with history written before maturity_years
+            # was persisted explicitly.
+            tenor = str(row[5]).strip().upper()
+
+            if tenor.endswith("Y"):
+                maturity_years = float(tenor[:-1])
+            elif tenor.endswith("M"):
+                maturity_years = (
+                    float(tenor[:-1]) / 12.0
+                )
+            else:
+                raise ValueError(
+                    "Persisted curve event has no usable maturity "
+                    f"for tenor {row[5]!r}."
+                )
+
+        points[maturity_years] = float(row[8])
+
+        events.append(
+            CurveEventObservation(
+                event_time=str(row[0]),
+                event_id=event_id,
+                curve_version=event_version,
+                curve_name=str(row[4]),
+                tenor=str(row[5]),
+                old_rate=float(row[7]),
+                new_rate=float(row[8]),
+                source=str(row[9]),
+                scenario_name=str(row[10]),
+                recorded_at=str(row[11]),
+            )
+        )
+
+    if current_version != curve_version:
+        raise ValueError(
+            "Cannot reconstruct requested curve version "
+            f"{curve_version}: durable history reaches only "
+            f"version {current_version}."
+        )
+
+    if not points:
+        raise ValueError(
+            "Cannot reconstruct curve because neither a durable "
+            "checkpoint nor replayable curve events are available."
+        )
+
+    curve_points = [
+        {
+            "maturity_years": maturity,
+            "zero_rate": rate,
+        }
+        for maturity, rate in sorted(points.items())
+    ]
+
+    return curve_points, events
+
+
 def curve_events_through_version(
     curve_version: int,
     *,

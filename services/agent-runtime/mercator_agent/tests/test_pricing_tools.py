@@ -564,3 +564,271 @@ def test_explain_price_move_missing_price() -> None:
             raise AssertionError(
                 "Expected ValueError."
             )
+
+
+class SequencedFakeClickHouse:
+    """
+    Fake ClickHouse client returning one result set per query.
+
+    replay_curve_state() performs:
+      1. checkpoint lookup
+      2. delta-event lookup
+    """
+
+    def __init__(
+        self,
+        results: list[list[tuple]],
+    ) -> None:
+        self.results = list(results)
+        self.queries: list[tuple[str, dict]] = []
+
+    def query(
+        self,
+        query: str,
+        *,
+        parameters: dict,
+    ) -> FakeQueryResult:
+        self.queries.append(
+            (
+                query,
+                parameters,
+            )
+        )
+
+        if not self.results:
+            raise AssertionError(
+                "Unexpected ClickHouse query"
+            )
+
+        return FakeQueryResult(
+            self.results.pop(0)
+        )
+
+
+def _curve_event_row(
+    *,
+    event_id: str,
+    curve_version: int,
+    previous_version: int,
+    maturity_years: float,
+    old_rate: float,
+    new_rate: float,
+    tenor: str = "30Y",
+) -> tuple:
+    return (
+        "2026-08-18 05:17:47",
+        event_id,
+        curve_version,
+        previous_version,
+        "UST",
+        tenor,
+        maturity_years,
+        old_rate,
+        new_rate,
+        "recovery-test",
+        "live",
+        "2026-08-18 05:17:48",
+    )
+
+
+def test_replay_curve_state_checkpoint_only(
+    monkeypatch,
+) -> None:
+    client = SequencedFakeClickHouse([
+        [
+            (
+                164,
+                [0.25, 0.5, 1.0, 30.0],
+                [0.043, 0.042, 0.041, 0.0472],
+            )
+        ],
+        [],
+    ])
+
+    monkeypatch.setattr(
+        pricing,
+        "_clickhouse_client",
+        lambda: client,
+    )
+
+    points, events = pricing.replay_curve_state(
+        164,
+        curve_name="UST",
+    )
+
+    assert points == [
+        {
+            "maturity_years": 0.25,
+            "zero_rate": 0.043,
+        },
+        {
+            "maturity_years": 0.5,
+            "zero_rate": 0.042,
+        },
+        {
+            "maturity_years": 1.0,
+            "zero_rate": 0.041,
+        },
+        {
+            "maturity_years": 30.0,
+            "zero_rate": 0.0472,
+        },
+    ]
+
+    assert events == []
+
+    assert len(client.queries) == 2
+
+    assert (
+        client.queries[1][1]["checkpoint_version"]
+        == 164
+    )
+
+    assert (
+        client.queries[1][1]["curve_version"]
+        == 164
+    )
+
+
+def test_replay_curve_state_checkpoint_plus_delta(
+    monkeypatch,
+) -> None:
+    event_id = (
+        "11111111-2222-4333-8444-555555555555"
+    )
+
+    client = SequencedFakeClickHouse([
+        [
+            (
+                164,
+                [0.25, 0.5, 1.0, 30.0],
+                [0.043, 0.042, 0.041, 0.0472],
+            )
+        ],
+        [
+            _curve_event_row(
+                event_id=event_id,
+                curve_version=165,
+                previous_version=164,
+                maturity_years=30.0,
+                old_rate=0.0472,
+                new_rate=0.0473,
+            )
+        ],
+    ])
+
+    monkeypatch.setattr(
+        pricing,
+        "_clickhouse_client",
+        lambda: client,
+    )
+
+    points, events = pricing.replay_curve_state(
+        165,
+        curve_name="UST",
+    )
+
+    assert points[-1] == {
+        "maturity_years": 30.0,
+        "zero_rate": 0.0473,
+    }
+
+    assert len(events) == 1
+
+    assert events[0].event_id == event_id
+    assert events[0].curve_version == 165
+    assert events[0].old_rate == 0.0472
+    assert events[0].new_rate == 0.0473
+
+
+def test_replay_curve_state_ignores_duplicate_delivery(
+    monkeypatch,
+) -> None:
+    event_id = (
+        "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    )
+
+    event = _curve_event_row(
+        event_id=event_id,
+        curve_version=165,
+        previous_version=164,
+        maturity_years=30.0,
+        old_rate=0.0472,
+        new_rate=0.0473,
+    )
+
+    client = SequencedFakeClickHouse([
+        [
+            (
+                164,
+                [0.25, 0.5, 1.0, 30.0],
+                [0.043, 0.042, 0.041, 0.0472],
+            )
+        ],
+        [
+            event,
+            event,
+        ],
+    ])
+
+    monkeypatch.setattr(
+        pricing,
+        "_clickhouse_client",
+        lambda: client,
+    )
+
+    points, events = pricing.replay_curve_state(
+        165,
+        curve_name="UST",
+    )
+
+    assert points[-1] == {
+        "maturity_years": 30.0,
+        "zero_rate": 0.0473,
+    }
+
+    assert len(events) == 1
+    assert events[0].event_id == event_id
+
+
+def test_replay_curve_state_rejects_broken_version_chain(
+    monkeypatch,
+) -> None:
+    client = SequencedFakeClickHouse([
+        [
+            (
+                164,
+                [0.25, 0.5, 1.0, 30.0],
+                [0.043, 0.042, 0.041, 0.0472],
+            )
+        ],
+        [
+            _curve_event_row(
+                event_id=(
+                    "99999999-8888-4777-8666-555555555555"
+                ),
+                curve_version=166,
+                previous_version=165,
+                maturity_years=30.0,
+                old_rate=0.0472,
+                new_rate=0.0474,
+            )
+        ],
+    ])
+
+    monkeypatch.setattr(
+        pricing,
+        "_clickhouse_client",
+        lambda: client,
+    )
+
+    import pytest
+
+    with pytest.raises(
+        ValueError,
+        match="not contiguous",
+    ):
+        pricing.replay_curve_state(
+            166,
+            curve_name="UST",
+        )

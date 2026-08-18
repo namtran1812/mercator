@@ -12,8 +12,8 @@ from mercator_agent.state.models import (
 )
 
 from mercator_agent.tools.pricing import (
-    curve_events_through_version,
     historical_price_as_of,
+    replay_curve_state,
 )
 
 from mercator_agent.tools.reference_data import (
@@ -266,8 +266,8 @@ def build_replay_snapshot(
         price.reference_version,
     )
 
-    events = curve_events_through_version(
-        price.curve_version,
+    curve_points, events = replay_curve_state(
+        price.curve_version
     )
 
     reference_snapshot = ReplayReferenceSnapshot(
@@ -280,10 +280,6 @@ def build_replay_snapshot(
         rating=reference.rating,
         sector=reference.sector,
         currency=reference.currency,
-    )
-
-    curve_points = _reconstructed_curve_points(
-        events
     )
 
     request = _build_verifier_request(
