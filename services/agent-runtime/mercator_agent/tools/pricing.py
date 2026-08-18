@@ -776,3 +776,144 @@ def explain_price_move(
         residual_price_change=residual,
         explanation=explanation,
     )
+
+
+def historical_price_as_of(
+    instrument_id: int,
+    *,
+    as_of: str,
+) -> HistoricalPriceObservation:
+    """
+    Return the most recent evaluated price whose event_time is not
+    later than as_of.
+    """
+    client = _clickhouse_client()
+
+    result = client.query(
+        """
+        SELECT
+            instrument_id,
+            event_time,
+            clean_price,
+            dirty_price,
+            yield_to_maturity,
+            g_spread_bps,
+            modified_duration,
+            convexity,
+            curve_version,
+            reference_version,
+            quality_score,
+            quality_status,
+            model_version,
+            calculation_trace_id,
+            source_event_id
+        FROM evaluated_prices
+        WHERE instrument_id =
+            {instrument_id:UInt64}
+          AND event_time <=
+            parseDateTime64BestEffort({as_of:String})
+        ORDER BY event_time DESC
+        LIMIT 1
+        """,
+        parameters={
+            "instrument_id": instrument_id,
+            "as_of": as_of,
+        },
+    )
+
+    if not result.result_rows:
+        raise ValueError(
+            "No evaluated price exists at or before "
+            f"{as_of} for instrument {instrument_id}."
+        )
+
+    row = result.result_rows[0]
+
+    return HistoricalPriceObservation(
+        instrument_id=int(row[0]),
+        event_time=str(row[1]),
+        clean_price=float(row[2]),
+        dirty_price=float(row[3]),
+        yield_to_maturity=float(row[4]),
+        g_spread_bps=float(row[5]),
+        modified_duration=float(row[6]),
+        convexity=float(row[7]),
+        curve_version=int(row[8]),
+        reference_version=int(row[9]),
+        quality_score=float(row[10]),
+        quality_status=str(row[11]),
+        model_version=str(row[12]),
+        calculation_trace_id=str(row[13]),
+        source_event_id=str(row[14]),
+        source="clickhouse",
+    )
+
+
+def curve_events_through_version(
+    curve_version: int,
+    *,
+    curve_name: str = "UST",
+    limit: int = 500,
+) -> list[CurveEventObservation]:
+    """
+    Return persisted curve events through the requested version.
+
+    Results are oldest-first so callers can reason about the event
+    sequence deterministically.
+    """
+    if limit <= 0:
+        return []
+
+    limit = min(limit, 500)
+
+    client = _clickhouse_client()
+
+    result = client.query(
+        """
+        SELECT
+            event_time,
+            event_id,
+            curve_version,
+            curve_name,
+            tenor,
+            old_rate,
+            new_rate,
+            source,
+            scenario_name,
+            recorded_at
+        FROM curve_events
+        WHERE curve_name =
+            {curve_name:String}
+          AND curve_version <=
+            {curve_version:UInt64}
+        ORDER BY
+            curve_version DESC,
+            event_time DESC
+        LIMIT {limit:UInt32}
+        """,
+        parameters={
+            "curve_name": curve_name,
+            "curve_version": curve_version,
+            "limit": limit,
+        },
+    )
+
+    observations = [
+        CurveEventObservation(
+            event_time=str(row[0]),
+            event_id=str(row[1]),
+            curve_version=int(row[2]),
+            curve_name=str(row[3]),
+            tenor=str(row[4]),
+            old_rate=float(row[5]),
+            new_rate=float(row[6]),
+            source=str(row[7]),
+            scenario_name=str(row[8]),
+            recorded_at=str(row[9]),
+        )
+        for row in result.result_rows
+    ]
+
+    observations.reverse()
+
+    return observations

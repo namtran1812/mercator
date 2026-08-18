@@ -68,10 +68,12 @@ add_library(
     src/dependency_graph.cpp
     src/dependency_resolver.cpp
     src/repricing_service.cpp
+    src/price_replay.cpp
     src/data_quality.cpp
     src/quote_reconciliation.cpp
     src/adaptive_repricing.cpp
     src/curve_event_parser.cpp
+    src/curve_replay.cpp
     src/version_guard.cpp
     src/postgres_instrument_loader.cpp
     src/clickhouse_price_sink.cpp
@@ -286,6 +288,28 @@ add_test(
     COMMAND mercator-curve-event-pipeline-tests
 )
 
+
+
+# ============================================================
+# Curve replay tests
+# ============================================================
+
+add_executable(
+    mercator-curve-replay-tests
+    tests/curve_replay_test.cpp
+)
+
+target_link_libraries(
+    mercator-curve-replay-tests
+
+    PRIVATE
+    mercator-pricing-core
+)
+
+add_test(
+    NAME mercator-curve-replay-tests
+    COMMAND mercator-curve-replay-tests
+)
 
 
 # ============================================================
@@ -559,4 +583,50 @@ target_compile_options(
 add_test(
     NAME mercator-parallel-repricing-equivalence-tests
     COMMAND mercator-parallel-repricing-equivalence-tests
+)
+
+
+# ============================================================
+# Historical price replay verification test
+# ============================================================
+
+add_executable(
+    mercator-price-replay-tests
+    tests/test_price_replay.cpp
+)
+
+target_link_libraries(
+    mercator-price-replay-tests
+
+    PRIVATE
+    mercator-pricing-core
+)
+
+target_compile_options(
+    mercator-price-replay-tests
+
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-price-replay-tests
+    COMMAND mercator-price-replay-tests
+)
+
+
+add_executable(
+    mercator-price-replay-cli
+    src/price_replay_cli.cpp
+)
+
+target_link_libraries(
+    mercator-price-replay-cli
+    PRIVATE
+        mercator-pricing-core
+        nlohmann_json::nlohmann_json
 )

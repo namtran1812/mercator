@@ -310,3 +310,47 @@ def find_peer_profiles(
             dict,
         )
     ]
+
+
+def get_instrument_version(
+    instrument_id: int,
+    reference_version: int,
+) -> InstrumentProfile:
+    """
+    Resolve the exact reference-data version used by a historical
+    evaluated price.
+
+    The versions endpoint is intentionally used instead of an as-of
+    lookup because evaluated_prices stores the exact version_id that
+    participated in pricing.
+    """
+    response = requests.get(
+        (
+            f"{REFERENCE_DATA_URL}"
+            f"/instruments/{instrument_id}/versions"
+        ),
+        timeout=15,
+    )
+
+    response.raise_for_status()
+
+    payload = response.json()
+
+    if not isinstance(payload, list):
+        raise ValueError(
+            "Reference Data versions lookup returned "
+            "an unexpected payload."
+        )
+
+    for row in payload:
+        if (
+            int(row.get("version_id", -1))
+            == reference_version
+        ):
+            return _profile_from_payload(row)
+
+    raise ValueError(
+        "Reference version "
+        f"{reference_version} was not found for "
+        f"instrument {instrument_id}."
+    )

@@ -468,3 +468,45 @@ class AgentQueryResponse(BaseModel):
     errors: list[str] = Field(
         default_factory=list
     )
+
+
+class ReplayReferenceSnapshot(BaseModel):
+    instrument_id: int
+    reference_version: int
+
+    issuer_name: str
+    instrument_type: str
+
+    coupon_rate: float | None = None
+    maturity_date: date | None = None
+    rating: str | None = None
+    sector: str | None = None
+    currency: str = "USD"
+
+
+class ReplaySnapshot(BaseModel):
+    instrument_id: int
+    requested_as_of: str
+
+    price: HistoricalPriceObservation
+    reference: ReplayReferenceSnapshot
+
+    curve_version: int
+    curve_events: list[CurveEventObservation] = Field(
+        default_factory=list
+    )
+
+    calculation_trace_id: str
+    source_event_id: str
+
+    replay_status: str = "PROVENANCE_ONLY"
+
+    replayed_clean_price: float | None = None
+    replayed_dirty_price: float | None = None
+
+    clean_price_error: float | None = None
+    dirty_price_error: float | None = None
+
+    replay_absolute_tolerance: float | None = None
+
+    explanation: str
