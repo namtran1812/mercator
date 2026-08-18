@@ -181,12 +181,53 @@ class PriceMoveAttribution(BaseModel):
     explanation: str
 
 
+class InstrumentProfile(BaseModel):
+    instrument_id: int
+    instrument_type: str
+
+    issuer_name: str
+
+    cusip: str | None = None
+    isin: str | None = None
+    ticker: str | None = None
+
+    coupon_rate: float | None = None
+    maturity_date: date | None = None
+
+    rating: str | None = None
+    sector: str | None = None
+    currency: str = "USD"
+
+    reference_version: int | None = None
+
+
 class RelativeValueResult(BaseModel):
     instrument_id: int
 
     spread_bps: float
+
+    #
+    # Retained for API compatibility.
+    #
     peer_average_spread_bps: float
     spread_difference_bps: float
+
+    peer_median_spread_bps: float | None = None
+    peer_standard_deviation_bps: float | None = None
+    spread_z_score: float | None = None
+
+    peer_count: int = 0
+
+    classification: str = "FAIR"
+    confidence: str = "LOW"
+
+    sector: str | None = None
+    rating: str | None = None
+    maturity_date: date | None = None
+
+    peer_instrument_ids: list[int] = Field(
+        default_factory=list
+    )
 
     interpretation: str
 

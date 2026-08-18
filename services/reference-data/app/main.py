@@ -21,6 +21,7 @@ from .reconciliation_models import (
 from .repository import (
     get_current_instrument,
     get_instrument_as_of,
+    find_peer_instruments,
     get_current_etf,
     get_current_etf_constituents,
     list_versions,
@@ -69,6 +70,39 @@ def search(
     return search_instruments(
         connection=connection,
         query_text=q,
+        limit=limit,
+    )
+
+
+@app.get(
+    "/instruments/peers",
+    response_model=list[InstrumentVersion],
+)
+def peer_instruments(
+    instrument_type: str,
+    currency: str = "USD",
+    sector: str | None = None,
+    maturity_start: datetime | None = None,
+    maturity_end: datetime | None = None,
+    exclude_instrument_id: int = 0,
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=200,
+    ),
+    connection: Connection = Depends(
+        connection_dependency
+    ),
+) -> list[InstrumentVersion]:
+    return find_peer_instruments(
+        connection=connection,
+        instrument_type=instrument_type,
+        currency=currency,
+        sector=sector,
+        maturity_start=maturity_start,
+        maturity_end=maturity_end,
+        exclude_instrument_id=
+            exclude_instrument_id,
         limit=limit,
     )
 

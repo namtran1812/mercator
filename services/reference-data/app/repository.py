@@ -309,3 +309,97 @@ def get_current_etf_constituents(
         )
         for row in rows
     ]
+
+
+def find_peer_instruments(
+    connection: Connection,
+    *,
+    instrument_type: str,
+    currency: str,
+    sector: str | None,
+    maturity_start: datetime | None,
+    maturity_end: datetime | None,
+    exclude_instrument_id: int,
+    limit: int = 50,
+) -> list[InstrumentVersion]:
+    """
+    Return current security-master records forming a broad
+    candidate peer universe.
+
+    Fine-grained rating/maturity scoring is intentionally
+    performed by the analytics layer rather than SQL.
+    """
+
+    conditions = [
+        "instrument_type = %s",
+        "currency = %s",
+        "instrument_id <> %s",
+        "valid_from <= now()",
+        "(valid_to IS NULL OR valid_to > now())",
+        "recorded_from <= now()",
+        "(recorded_to IS NULL OR recorded_to > now())",
+    ]
+
+    parameters: list[object] = [
+        instrument_type,
+        currency,
+        exclude_instrument_id,
+    ]
+
+    if sector:
+        conditions.append(
+            "sector = %s"
+        )
+
+        parameters.append(
+            sector
+        )
+
+    if maturity_start is not None:
+        conditions.append(
+            "maturity_date >= %s"
+        )
+
+        parameters.append(
+            maturity_start.date()
+        )
+
+    if maturity_end is not None:
+        conditions.append(
+            "maturity_date <= %s"
+        )
+
+        parameters.append(
+            maturity_end.date()
+        )
+
+    parameters.append(
+        limit
+    )
+
+    query = f"""
+        SELECT DISTINCT ON (instrument_id)
+            *
+        FROM instrument_versions
+        WHERE {' AND '.join(conditions)}
+        ORDER BY
+            instrument_id,
+            source_priority ASC,
+            recorded_from DESC
+        LIMIT %s
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            query,
+            tuple(parameters),
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        InstrumentVersion.model_validate(
+            row
+        )
+        for row in rows
+    ]

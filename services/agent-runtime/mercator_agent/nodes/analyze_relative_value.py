@@ -8,6 +8,15 @@ from mercator_agent.tools.relative_value import (
     calculate_relative_value,
 )
 
+from mercator_agent.tools.reference_data import (
+    find_peer_profiles,
+    get_instrument_profiles,
+)
+
+from mercator_agent.tools.pricing import (
+    latest_prices,
+)
+
 
 def analyze_relative_value_node(
     state: AgentState,
@@ -57,9 +66,69 @@ def analyze_relative_value_node(
         }
 
     try:
+        target_ids = [
+            price.instrument_id
+            for price in prices
+        ]
+
+        target_profiles = (
+            get_instrument_profiles(
+                target_ids
+            )
+        )
+
+        profile_by_id = {
+            profile.instrument_id:
+                profile
+            for profile
+            in target_profiles
+        }
+
+        #
+        # Expand beyond only the securities explicitly
+        # mentioned in the user request.
+        #
+        for target_profile in target_profiles:
+            for peer_profile in (
+                find_peer_profiles(
+                    target_profile,
+                    limit=50,
+                )
+            ):
+                profile_by_id.setdefault(
+                    peer_profile.instrument_id,
+                    peer_profile,
+                )
+
+        additional_ids = [
+            instrument_id
+            for instrument_id
+            in profile_by_id
+            if instrument_id
+            not in target_ids
+        ]
+
+        peer_prices = (
+            latest_prices(
+                additional_ids
+            )
+            if additional_ids
+            else []
+        )
+
         results = (
             calculate_relative_value(
-                prices
+                [
+                    *prices,
+                    *peer_prices,
+                ],
+
+                profiles=list(
+                    profile_by_id.values()
+                ),
+
+                target_instrument_ids=
+                    target_ids,
             )
         )
 
@@ -74,8 +143,15 @@ def analyze_relative_value_node(
                 ),
                 "relative_value": {
                     "status": "completed",
+
                     "results":
                         len(results),
+
+                    "targets":
+                        len(target_ids),
+
+                    "peer_candidates":
+                        len(additional_ids),
                 },
             },
         }

@@ -168,12 +168,30 @@ def compose_brief_node(
     # Summarize strongest relative-value signals.
     #
     for item in relative_value[:5]:
+        benchmark = (
+            item.peer_median_spread_bps
+            if item.peer_median_spread_bps
+            is not None
+            else item.peer_average_spread_bps
+        )
+
+        z_text = (
+            f", z-score {item.spread_z_score:+.2f}"
+            if item.spread_z_score
+            is not None
+            else ""
+        )
+
         market_observations.append(
             (
                 f"Instrument {item.instrument_id} "
-                f"trades at {item.spread_bps:.1f} bp, "
-                f"{item.spread_difference_bps:+.1f} bp "
-                "versus the selected peer average."
+                f"trades at {item.spread_bps:.1f} bp "
+                f"versus a {benchmark:.1f} bp peer "
+                f"benchmark ({item.spread_difference_bps:+.1f} bp"
+                f"{z_text}) across {item.peer_count} peers; "
+                f"Mercator classifies it "
+                f"{item.classification.lower()} "
+                f"with {item.confidence.lower()} confidence."
             )
         )
 
@@ -450,9 +468,11 @@ def compose_brief_node(
             f"{len(relative_value)} priced securities "
             f"for {issuer_name}. "
             f"Instrument {widest_rv.instrument_id} "
-            f"shows the largest positive spread "
-            f"difference versus the selected peer set "
-            f"at {widest_rv.spread_difference_bps:+.1f} bp."
+            f"shows the strongest positive relative-value "
+            f"signal at "
+            f"{widest_rv.spread_difference_bps:+.1f} bp "
+            f"versus its peer benchmark and is classified "
+            f"{widest_rv.classification.lower()}."
         )
 
     elif prices:
