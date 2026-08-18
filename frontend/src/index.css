@@ -1050,3 +1050,62 @@ h2 {
     monospace;
   font-size: 12px;
 }
+
+
+.agent-context,
+.agent-quick-actions,
+.agent-metric-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.agent-context {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  margin-bottom: 0.75rem;
+}
+
+.agent-context span,
+.agent-metric-grid > div {
+  border: 1px solid
+    rgba(148, 163, 184, 0.18);
+  border-radius: 0.45rem;
+  padding: 0.6rem;
+}
+
+.agent-quick-actions {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  margin-bottom: 0.75rem;
+}
+
+.agent-analysis-card {
+  border-top: 1px solid
+    rgba(148, 163, 184, 0.18);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.agent-metric-grid {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  margin: 0.75rem 0;
+}
+
+.agent-metric-grid span {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.agent-metric-grid strong {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+@media (max-width: 900px) {
+  .agent-context,
+  .agent-quick-actions {
+    grid-template-columns: 1fr;
+  }
+}

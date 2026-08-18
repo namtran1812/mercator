@@ -8,6 +8,7 @@ from mercator_agent.state.models import (
 )
 
 from mercator_agent.tools.reference_data import (
+    get_instrument_profiles,
     resolve_securities,
 )
 
@@ -190,49 +191,132 @@ def resolve_security_node(
     # --------------------------------------------------------
     #
     if request.instrument_ids:
+        instrument_ids = list(
+            request.instrument_ids
+        )
+
+        instrument_type = (
+            _infer_instrument_type(
+                request.question
+            )
+        )
+
+        issuer_name = (
+            request.issuer
+        )
+
+        profile_count = 0
+
+        try:
+            profiles = (
+                get_instrument_profiles(
+                    instrument_ids
+                )
+            )
+
+            profile_count = len(
+                profiles
+            )
+
+            if profiles:
+                if issuer_name is None:
+                    issuers = list(
+                        dict.fromkeys(
+                            profile.issuer_name
+                            for profile
+                            in profiles
+                            if profile.issuer_name
+                        )
+                    )
+
+                    if len(issuers) == 1:
+                        issuer_name = (
+                            issuers[0]
+                        )
+
+                if instrument_type is None:
+                    types = list(
+                        dict.fromkeys(
+                            profile.instrument_type
+                            for profile
+                            in profiles
+                            if profile.instrument_type
+                        )
+                    )
+
+                    if len(types) == 1:
+                        instrument_type = (
+                            types[0]
+                        )
+
+        except Exception as error:
+            #
+            # Caller-provided IDs remain usable even if
+            # metadata hydration is temporarily unavailable.
+            #
+            hydration_error = str(
+                error
+            )
+
+        else:
+            hydration_error = None
+
         security = SecurityResolution(
             query=
                 "caller_provided",
 
-            instrument_ids=list(
-                request.instrument_ids
-            ),
+            instrument_ids=
+                instrument_ids,
 
             instrument_type=
-                _infer_instrument_type(
-                    request.question
-                ),
+                instrument_type,
 
             issuer_name=
-                request.issuer,
+                issuer_name,
 
             result_count=
                 len(
-                    request.instrument_ids
+                    instrument_ids
                 ),
         )
+
+        diagnostics = {
+            **state.get(
+                "diagnostics",
+                {},
+            ),
+
+            "security_resolution": {
+                "status":
+                    "caller_provided",
+
+                "instrument_ids":
+                    security.instrument_ids,
+
+                "instrument_type":
+                    security.instrument_type,
+
+                "issuer_name":
+                    security.issuer_name,
+
+                "profiles_hydrated":
+                    profile_count,
+            },
+        }
+
+        if hydration_error is not None:
+            diagnostics[
+                "security_resolution"
+            ][
+                "hydration_error"
+            ] = hydration_error
 
         return {
             "security":
                 security,
 
-            "diagnostics": {
-                **state.get(
-                    "diagnostics",
-                    {},
-                ),
-
-                "security_resolution": {
-                    "status":
-                        "caller_provided",
-
-                    "instrument_ids":
-                        security.instrument_ids,
-
-                    "instrument_type":
-                        security.instrument_type,
-                },
-            },
+            "diagnostics":
+                diagnostics,
         }
 
     #

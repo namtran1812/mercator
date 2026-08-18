@@ -297,3 +297,73 @@ export interface CarryRollResponse {
   average_expected_return_percent: number;
   opportunities: CarryRollOpportunity[];
 }
+
+
+export interface PriceMoveAttribution {
+  instrument_id: number;
+  curve_version: number;
+  source_event_id: string | null;
+  dependency_tenor: string | null;
+
+  old_rate: number | null;
+  new_rate: number | null;
+  rate_change_bps: number | null;
+
+  previous_clean_price: number | null;
+  current_clean_price: number;
+
+  observed_price_change: number | null;
+  observed_return: number | null;
+
+  modified_duration: number;
+  convexity: number | null;
+
+  duration_return: number | null;
+  convexity_return: number | null;
+  estimated_curve_return: number | null;
+
+  estimated_curve_price_change: number | null;
+  residual_price_change: number | null;
+
+  explanation: string;
+}
+
+
+export interface AgentRelativeValueResult {
+  instrument_id: number;
+
+  spread_bps: number;
+
+  peer_average_spread_bps: number;
+  peer_median_spread_bps: number | null;
+  peer_standard_deviation_bps: number | null;
+
+  spread_difference_bps: number;
+  spread_z_score: number | null;
+
+  peer_count: number;
+
+  classification: "CHEAP" | "RICH" | "FAIR";
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+
+  sector: string | null;
+  rating: string | null;
+  maturity_date: string | null;
+
+  peer_instrument_ids: number[];
+
+  interpretation: string;
+}
+
+
+export interface AgentQueryResponse {
+  brief: ClientBrief | null;
+
+  prices: BondPrice[];
+
+  price_attribution: PriceMoveAttribution[];
+
+  relative_value: AgentRelativeValueResult[];
+
+  errors: string[];
+}

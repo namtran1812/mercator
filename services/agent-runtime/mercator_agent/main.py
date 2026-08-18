@@ -143,6 +143,12 @@ def agent_query(
                 [],
             ),
 
+        price_attribution=
+            result.get(
+                "price_attribution",
+                [],
+            ),
+
         relative_value=
             result.get(
                 "relative_value",
