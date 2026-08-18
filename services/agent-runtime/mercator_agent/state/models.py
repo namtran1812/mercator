@@ -484,6 +484,17 @@ class ReplayReferenceSnapshot(BaseModel):
     currency: str = "USD"
 
 
+class CurveReplayState(BaseModel):
+    curve_version: int
+    valuation_date: str
+    curve_points: list[dict[str, float]] = Field(
+        default_factory=list
+    )
+    curve_events: list[CurveEventObservation] = Field(
+        default_factory=list
+    )
+
+
 class ReplaySnapshot(BaseModel):
     instrument_id: int
     requested_as_of: str

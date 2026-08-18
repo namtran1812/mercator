@@ -7,6 +7,7 @@ import subprocess
 from typing import Any
 
 from mercator_agent.state.models import (
+    CurveReplayState,
     ReplayReferenceSnapshot,
     ReplaySnapshot,
 )
@@ -124,6 +125,7 @@ def _build_verifier_request(
     price,
     reference,
     curve_points: list[dict[str, float]],
+    valuation_date: str,
     absolute_tolerance: float,
 ) -> dict[str, Any]:
     if reference.maturity_date is None:
@@ -142,7 +144,7 @@ def _build_verifier_request(
             price.instrument_id,
 
         "valuation_date":
-            str(price.event_time)[:10],
+            valuation_date,
 
         "coupon_rate":
             _coupon_rate_decimal(
@@ -266,9 +268,12 @@ def build_replay_snapshot(
         price.reference_version,
     )
 
-    curve_points, events = replay_curve_state(
+    curve_state = replay_curve_state(
         price.curve_version
     )
+
+    curve_points = curve_state.curve_points
+    events = curve_state.curve_events
 
     reference_snapshot = ReplayReferenceSnapshot(
         instrument_id=reference.instrument_id,
@@ -286,6 +291,7 @@ def build_replay_snapshot(
         price=price,
         reference=reference,
         curve_points=curve_points,
+        valuation_date=curve_state.valuation_date,
         absolute_tolerance=absolute_tolerance,
     )
 

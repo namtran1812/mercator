@@ -9,6 +9,7 @@ import redis
 
 from mercator_agent.state.models import (
     CurveEventObservation,
+    CurveReplayState,
     HistoricalPriceObservation,
     PriceMoveAttribution,
     PriceObservation,
@@ -854,10 +855,7 @@ def replay_curve_state(
     curve_version: int,
     *,
     curve_name: str = "UST",
-) -> tuple[
-    list[dict[str, float]],
-    list[CurveEventObservation],
-]:
+) -> CurveReplayState:
     """
     Reconstruct the complete durable curve state at curve_version.
 
@@ -879,6 +877,7 @@ def replay_curve_state(
         """
         SELECT
             curve_version,
+            valuation_date,
             maturity_years,
             zero_rates
         FROM curve_checkpoints
@@ -894,20 +893,22 @@ def replay_curve_state(
     )
 
     checkpoint_version = 0
+    valuation_date: str | None = None
     points: dict[float, float] = {}
 
     if checkpoint_result.result_rows:
         row = checkpoint_result.result_rows[0]
 
         checkpoint_version = int(row[0])
+        valuation_date = str(row[1])
 
         maturities = [
             float(value)
-            for value in row[1]
+            for value in row[2]
         ]
         rates = [
             float(value)
-            for value in row[2]
+            for value in row[3]
         ]
 
         if len(maturities) != len(rates):
@@ -1032,6 +1033,12 @@ def replay_curve_state(
             "checkpoint nor replayable curve events are available."
         )
 
+    if valuation_date is None:
+        raise ValueError(
+            "Cannot numerically replay curve without a "
+            "persisted checkpoint valuation date."
+        )
+
     curve_points = [
         {
             "maturity_years": maturity,
@@ -1040,7 +1047,12 @@ def replay_curve_state(
         for maturity, rate in sorted(points.items())
     ]
 
-    return curve_points, events
+    return CurveReplayState(
+        curve_version=curve_version,
+        valuation_date=valuation_date,
+        curve_points=curve_points,
+        curve_events=events,
+    )
 
 
 def curve_events_through_version(

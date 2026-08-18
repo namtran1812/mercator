@@ -96,12 +96,16 @@ def test_build_replay_snapshot_verified(
     monkeypatch.setattr(
         replay,
         "replay_curve_state",
-        lambda curve_version: (
-            replay._reconstructed_curve_points(
-                events
+        lambda curve_version:
+            replay.CurveReplayState(
+                curve_version=curve_version,
+                valuation_date="2026-07-15",
+                curve_points=
+                    replay._reconstructed_curve_points(
+                        events
+                    ),
+                curve_events=events,
             ),
-            events,
-        ),
     )
 
     captured = {}
@@ -190,20 +194,23 @@ def test_replay_uses_price_reference_version(
     monkeypatch.setattr(
         replay,
         "replay_curve_state",
-        lambda curve_version: (
-            [
-                {
-                    "maturity_years": 30.0,
-                    "zero_rate": 0.0431,
-                }
-            ],
-            [
-                _event(
-                    "30Y",
-                    0.0431,
-                )
-            ],
-        ),
+        lambda curve_version:
+            replay.CurveReplayState(
+                curve_version=curve_version,
+                valuation_date="2026-07-15",
+                curve_points=[
+                    {
+                        "maturity_years": 30.0,
+                        "zero_rate": 0.0431,
+                    }
+                ],
+                curve_events=[
+                    _event(
+                        "30Y",
+                        0.0431,
+                    )
+                ],
+            ),
     )
 
     monkeypatch.setattr(

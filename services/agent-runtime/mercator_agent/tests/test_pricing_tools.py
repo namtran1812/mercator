@@ -638,6 +638,7 @@ def test_replay_curve_state_checkpoint_only(
         [
             (
                 164,
+                "2026-07-15",
                 [0.25, 0.5, 1.0, 30.0],
                 [0.043, 0.042, 0.041, 0.0472],
             )
@@ -651,10 +652,15 @@ def test_replay_curve_state_checkpoint_only(
         lambda: client,
     )
 
-    points, events = pricing.replay_curve_state(
+    state = pricing.replay_curve_state(
         164,
         curve_name="UST",
     )
+
+    points = state.curve_points
+    events = state.curve_events
+
+    assert state.valuation_date == "2026-07-15"
 
     assert points == [
         {
@@ -701,6 +707,7 @@ def test_replay_curve_state_checkpoint_plus_delta(
         [
             (
                 164,
+                "2026-07-15",
                 [0.25, 0.5, 1.0, 30.0],
                 [0.043, 0.042, 0.041, 0.0472],
             )
@@ -723,10 +730,15 @@ def test_replay_curve_state_checkpoint_plus_delta(
         lambda: client,
     )
 
-    points, events = pricing.replay_curve_state(
+    state = pricing.replay_curve_state(
         165,
         curve_name="UST",
     )
+
+    points = state.curve_points
+    events = state.curve_events
+
+    assert state.valuation_date == "2026-07-15"
 
     assert points[-1] == {
         "maturity_years": 30.0,
@@ -761,6 +773,7 @@ def test_replay_curve_state_ignores_duplicate_delivery(
         [
             (
                 164,
+                "2026-07-15",
                 [0.25, 0.5, 1.0, 30.0],
                 [0.043, 0.042, 0.041, 0.0472],
             )
@@ -777,10 +790,15 @@ def test_replay_curve_state_ignores_duplicate_delivery(
         lambda: client,
     )
 
-    points, events = pricing.replay_curve_state(
+    state = pricing.replay_curve_state(
         165,
         curve_name="UST",
     )
+
+    points = state.curve_points
+    events = state.curve_events
+
+    assert state.valuation_date == "2026-07-15"
 
     assert points[-1] == {
         "maturity_years": 30.0,
@@ -798,6 +816,7 @@ def test_replay_curve_state_rejects_broken_version_chain(
         [
             (
                 164,
+                "2026-07-15",
                 [0.25, 0.5, 1.0, 30.0],
                 [0.043, 0.042, 0.041, 0.0472],
             )
