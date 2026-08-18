@@ -6,6 +6,10 @@ from langgraph.graph import (
     StateGraph,
 )
 
+from mercator_agent.nodes.attribute_price_move import (
+    attribute_price_move_node,
+)
+
 from mercator_agent.nodes.analyze_relative_value import (
     analyze_relative_value_node,
 )
@@ -99,6 +103,11 @@ def build_graph():
     )
 
     builder.add_node(
+        "attribute_price_move",
+        attribute_price_move_node,
+    )
+
+    builder.add_node(
         "analyze_relative_value",
         analyze_relative_value_node,
     )
@@ -165,6 +174,11 @@ def build_graph():
 
     builder.add_edge(
         "retrieve_prices",
+        "attribute_price_move",
+    )
+
+    builder.add_edge(
+        "attribute_price_move",
         "analyze_relative_value",
     )
 

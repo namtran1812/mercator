@@ -16,12 +16,19 @@ def resolve_issuer_node(
     plan = state.get("plan")
 
     #
-    # SEC issuer resolution is only needed when
-    # research retrieval is actually requested.
+    # Explicit issuer/CIK input should always be
+    # canonicalized for downstream market analysis and
+    # brief generation, even when SEC research itself is
+    # not requested.
+    #
+    # For planner-inferred issuers, avoid the additional
+    # SEC issuer lookup unless research needs it.
     #
     if (
         plan is not None
         and not plan.needs_research
+        and request.issuer is None
+        and request.cik is None
     ):
         return {
             "diagnostics": {

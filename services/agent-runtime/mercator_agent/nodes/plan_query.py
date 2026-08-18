@@ -33,6 +33,12 @@ prices
 - duration
 - data-quality information
 
+price_attribution
+- explain observed bond price moves
+- match price changes to curve events
+- duration / convexity attribution
+- residual price movement
+
 relative_value
 - peer comparisons
 - cheap/rich analysis
@@ -115,6 +121,65 @@ def _contains_any(
     return any(
         term in text
         for term in terms
+    )
+
+
+def _is_price_attribution_request(
+    text: str,
+) -> bool:
+    """
+    Identify explicit security price-move explanation
+    requests without confusing them with issuer-credit
+    or general research questions.
+    """
+
+    explanation_terms = (
+        "why",
+        "explain",
+        "what drove",
+        "what caused",
+        "driver",
+        "drivers",
+    )
+
+    movement_terms = (
+        "move",
+        "moved",
+        "movement",
+        "change",
+        "changed",
+        "rose",
+        "fell",
+        "rallied",
+        "sold off",
+        "selloff",
+        "widen",
+        "widened",
+        "tighten",
+        "tightened",
+        "drove",
+    )
+
+    security_terms = (
+        "instrument",
+        "bond",
+        "security",
+        "price",
+    )
+
+    return (
+        _contains_any(
+            text,
+            explanation_terms,
+        )
+        and _contains_any(
+            text,
+            movement_terms,
+        )
+        and _contains_any(
+            text,
+            security_terms,
+        )
     )
 
 
@@ -256,6 +321,19 @@ def apply_guardrails(
     ):
         plan.needs_prices = True
 
+    if _is_price_attribution_request(
+        text
+    ):
+        plan.needs_price_attribution = True
+        plan.needs_prices = True
+
+        #
+        # A price move may also have issuer-specific
+        # evidence. Research retrieval remains optional
+        # downstream if no issuer can be resolved.
+        #
+        plan.needs_research = True
+
     return plan
 
 
@@ -350,6 +428,10 @@ def build_fast_plan(
         "catalysts",
         "research",
         "credit event",
+        "credit risk",
+        "credit quality",
+        "default risk",
+        "issuer risk",
         "explain",
     )
 
@@ -396,6 +478,12 @@ def build_fast_plan(
         pricing_terms,
     )
 
+    has_price_attribution = (
+        _is_price_attribution_request(
+            text
+        )
+    )
+
     #
     # These signals are sufficiently explicit that
     # there is little value in asking the LLM to
@@ -408,6 +496,7 @@ def build_fast_plan(
             has_stress,
             has_hedge,
             has_etf,
+            has_price_attribution,
         )
     )
 
@@ -440,6 +529,7 @@ def build_fast_plan(
         or has_stress
         or has_hedge
         or has_etf
+        or has_price_attribution
     )
 
     if has_stress:
@@ -454,6 +544,9 @@ def build_fast_plan(
     elif has_relative_value:
         intent = "relative_value"
 
+    elif has_price_attribution:
+        intent = "price_attribution"
+
     elif has_risk:
         intent = "risk"
 
@@ -465,10 +558,16 @@ def build_fast_plan(
         issuer=None,
 
         needs_research=
-            has_research,
+            (
+                has_research
+                or has_price_attribution
+            ),
 
         needs_prices=
             needs_prices,
+
+        needs_price_attribution=
+            has_price_attribution,
 
         needs_relative_value=
             has_relative_value,
@@ -535,6 +634,9 @@ def plan_query_node(
                         "prices":
                             fast_plan.needs_prices,
 
+                        "price_attribution":
+                            fast_plan.needs_price_attribution,
+
                         "relative_value":
                             fast_plan.needs_relative_value,
 
@@ -577,6 +679,7 @@ intent
 issuer
 needs_research
 needs_prices
+needs_price_attribution
 needs_relative_value
 needs_risk
 needs_stress
@@ -648,6 +751,9 @@ needs_etf_analytics
                 "prices":
                     plan.needs_prices,
 
+                "price_attribution":
+                    plan.needs_price_attribution,
+
                 "relative_value":
                     plan.needs_relative_value,
 
@@ -680,6 +786,7 @@ needs_etf_analytics
 
             needs_research=True,
             needs_prices=True,
+            needs_price_attribution=False,
 
             needs_relative_value=False,
             needs_risk=False,

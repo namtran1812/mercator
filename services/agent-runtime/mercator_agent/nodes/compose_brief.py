@@ -38,6 +38,11 @@ def compose_brief_node(
         [],
     )
 
+    price_attribution = state.get(
+        "price_attribution",
+        [],
+    )
+
     #
     # Prefer SEC issuer resolution when available.
     #
@@ -75,6 +80,15 @@ def compose_brief_node(
         )
 
     market_observations: list[str] = []
+
+    #
+    # Attribution text is produced by deterministic
+    # analytics, not generated causal speculation.
+    #
+    for item in price_attribution[:5]:
+        market_observations.append(
+            item.explanation
+        )
 
     if etf_analytics is not None:
         coverage_percent = (
@@ -403,6 +417,25 @@ def compose_brief_node(
             f"{etf_analytics.weighted_modified_duration:.2f} "
             f"with G-spread "
             f"{etf_analytics.weighted_g_spread_bps:.1f} bp."
+        )
+
+    elif price_attribution:
+        matched = sum(
+            1
+            for item in price_attribution
+            if item.rate_change_bps
+            is not None
+        )
+
+        summary = (
+            f"Mercator produced deterministic "
+            f"price-move attribution for "
+            f"{len(price_attribution)} "
+            f"instrument"
+            f"{'s' if len(price_attribution) != 1 else ''}. "
+            f"{matched} attribution"
+            f"{'s' if matched != 1 else ''} "
+            f"matched stored curve-event provenance."
         )
 
     elif relative_value:

@@ -34,6 +34,7 @@ class AgentPlan(BaseModel):
 
     needs_research: bool = True
     needs_prices: bool = True
+    needs_price_attribution: bool = False
 
     needs_relative_value: bool = False
     needs_risk: bool = False
@@ -86,12 +87,98 @@ class PriceObservation(BaseModel):
     yield_to_maturity: float
     g_spread_bps: float
     modified_duration: float
+    convexity: float | None = None
+
+    quality_score: float = 1.0
+    quality_status: str
+
+    curve_version: int
+    reference_version: int | None = None
+
+    event_time: str | None = None
+    price_change: float | None = None
+
+    source_event_id: str | None = None
+    calculation_trace_id: str | None = None
+
+    dependency_tenor: str | None = None
+    dependency_weight: float | None = None
+
+    source: str = "unknown"
+
+
+class HistoricalPriceObservation(BaseModel):
+    instrument_id: int
+
+    event_time: str
+
+    clean_price: float
+    dirty_price: float
+
+    yield_to_maturity: float
+    g_spread_bps: float
+    modified_duration: float
+    convexity: float
+
+    curve_version: int
+    reference_version: int
 
     quality_score: float
     quality_status: str
 
+    model_version: str
+    calculation_trace_id: str
+    source_event_id: str
+
+    source: str = "clickhouse"
+
+
+class CurveEventObservation(BaseModel):
+    event_time: str
+    event_id: str
+
     curve_version: int
-    reference_version: int
+    curve_name: str
+    tenor: str
+
+    old_rate: float
+    new_rate: float
+
+    source: str
+    scenario_name: str
+
+    recorded_at: str
+
+
+class PriceMoveAttribution(BaseModel):
+    instrument_id: int
+
+    curve_version: int
+    source_event_id: str | None = None
+
+    dependency_tenor: str | None = None
+
+    old_rate: float | None = None
+    new_rate: float | None = None
+    rate_change_bps: float | None = None
+
+    previous_clean_price: float | None = None
+    current_clean_price: float
+
+    observed_price_change: float | None = None
+    observed_return: float | None = None
+
+    modified_duration: float
+    convexity: float | None = None
+
+    duration_return: float | None = None
+    convexity_return: float | None = None
+    estimated_curve_return: float | None = None
+
+    estimated_curve_price_change: float | None = None
+    residual_price_change: float | None = None
+
+    explanation: str
 
 
 class RelativeValueResult(BaseModel):
@@ -252,6 +339,10 @@ class AgentState(
         PriceObservation
     ]
 
+    price_attribution: list[
+        PriceMoveAttribution
+    ]
+
     relative_value: list[
         RelativeValueResult
     ]
@@ -280,6 +371,12 @@ class AgentQueryResponse(BaseModel):
     security: SecurityResolution | None = None
 
     prices: list[PriceObservation] = Field(
+        default_factory=list
+    )
+
+    price_attribution: list[
+        PriceMoveAttribution
+    ] = Field(
         default_factory=list
     )
 

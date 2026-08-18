@@ -228,8 +228,24 @@ std::string make_payload(
             price.curve_version
         },
         {
+            "reference_version",
+            price.reference_version
+        },
+        {
+            "quality_score",
+            price.quality_score
+        },
+        {
             "quality_status",
             price.quality_status
+        },
+        {
+            "model_version",
+            price.model_version
+        },
+        {
+            "calculation_trace_id",
+            price.calculation_trace_id
         },
         {
             "event_time",

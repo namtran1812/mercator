@@ -1,11 +1,38 @@
 from __future__ import annotations
 
+import json
 import os
+from datetime import datetime, timezone
 
 import clickhouse_connect
+import redis
 
-from mercator_agent.state.models import PriceObservation
+from mercator_agent.state.models import (
+    CurveEventObservation,
+    HistoricalPriceObservation,
+    PriceMoveAttribution,
+    PriceObservation,
+)
 
+
+REDIS_HOST = os.getenv(
+    "REDIS_HOST",
+    "127.0.0.1",
+)
+
+REDIS_PORT = int(
+    os.getenv(
+        "REDIS_PORT",
+        "6380",
+    )
+)
+
+REDIS_DB = int(
+    os.getenv(
+        "REDIS_DB",
+        "0",
+    )
+)
 
 
 def _demo_latest_prices(
@@ -13,72 +40,60 @@ def _demo_latest_prices(
 ) -> list[PriceObservation]:
     return [
         PriceObservation(
-            instrument_id=
-                instrument_id,
+            instrument_id=instrument_id,
 
             clean_price=
                 760.0
                 + (
-                    instrument_id
-                    * 37
+                    instrument_id * 37
                 )
                 % 360,
 
             dirty_price=
                 762.0
                 + (
-                    instrument_id
-                    * 37
+                    instrument_id * 37
                 )
                 % 360,
 
             yield_to_maturity=
                 0.045
                 + (
-                    instrument_id
-                    % 40
+                    instrument_id % 40
                 )
                 * 0.001,
 
             g_spread_bps=
                 85.0
                 + (
-                    instrument_id
-                    * 29
+                    instrument_id * 29
                 )
                 % 315,
 
             modified_duration=
                 2.0
                 + (
-                    instrument_id
-                    % 145
+                    instrument_id % 145
                 )
                 / 10.0,
 
-            quality_score=
-                0.95,
+            convexity=None,
 
-            quality_status=
-                "VALID",
+            quality_score=0.95,
+            quality_status="VALID",
 
-            curve_version=
-                2,
+            curve_version=2,
+            reference_version=1,
 
-            reference_version=
-                1,
+            source="demo",
         )
         for instrument_id
         in instrument_ids
     ]
 
-def latest_prices(
-    instrument_ids: list[int],
-) -> list[PriceObservation]:
-    if not instrument_ids:
-        return []
 
-    demo_mode = (
+def _demo_mode() -> bool:
+    return (
         os.getenv(
             "MERCATOR_DEMO_MODE",
             "false",
@@ -91,12 +106,20 @@ def latest_prices(
         }
     )
 
-    if demo_mode:
-        return _demo_latest_prices(
-            instrument_ids
-        )
 
-    client = clickhouse_connect.get_client(
+def _redis_client() -> redis.Redis:
+    return redis.Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        db=REDIS_DB,
+        decode_responses=True,
+        socket_connect_timeout=2,
+        socket_timeout=5,
+    )
+
+
+def _clickhouse_client():
+    return clickhouse_connect.get_client(
         host=os.getenv(
             "CLICKHOUSE_HOST",
             "localhost",
@@ -121,71 +144,635 @@ def latest_prices(
         ),
     )
 
-    parameters = {
-        "instrument_ids": instrument_ids,
-    }
+
+def latest_prices(
+    instrument_ids: list[int],
+) -> list[PriceObservation]:
+    """
+    Return authoritative current evaluated prices.
+
+    Redis is the low-latency latest-state store.
+    ClickHouse is intentionally not queried here.
+    """
+
+    if not instrument_ids:
+        return []
+
+    if _demo_mode():
+        return _demo_latest_prices(
+            instrument_ids
+        )
+
+    client = _redis_client()
+
+    keys = [
+        f"mercator:price:{instrument_id}"
+        for instrument_id
+        in instrument_ids
+    ]
+
+    payloads = client.mget(
+        keys
+    )
+
+    results: list[
+        PriceObservation
+    ] = []
+
+    for instrument_id, payload in zip(
+        instrument_ids,
+        payloads,
+        strict=True,
+    ):
+        if payload is None:
+            continue
+
+        data = json.loads(
+            payload
+        )
+
+        actual_instrument_id = int(
+            data.get(
+                "instrument_id",
+                instrument_id,
+            )
+        )
+
+        if actual_instrument_id != instrument_id:
+            raise ValueError(
+                "Redis pricing key/payload "
+                "instrument mismatch: "
+                f"key={instrument_id} "
+                f"payload={actual_instrument_id}"
+            )
+
+        results.append(
+            PriceObservation(
+                instrument_id=
+                    actual_instrument_id,
+
+                clean_price=
+                    float(
+                        data["clean_price"]
+                    ),
+
+                dirty_price=
+                    float(
+                        data["dirty_price"]
+                    ),
+
+                yield_to_maturity=
+                    float(
+                        data[
+                            "yield_to_maturity"
+                        ]
+                    ),
+
+                g_spread_bps=
+                    float(
+                        data[
+                            "g_spread_bps"
+                        ]
+                    ),
+
+                modified_duration=
+                    float(
+                        data[
+                            "modified_duration"
+                        ]
+                    ),
+
+                convexity=(
+                    float(
+                        data["convexity"]
+                    )
+                    if data.get(
+                        "convexity"
+                    )
+                    is not None
+                    else None
+                ),
+
+                quality_score=
+                    float(
+                        data.get(
+                            "quality_score",
+                            1.0,
+                        )
+                    ),
+
+                quality_status=
+                    str(
+                        data[
+                            "quality_status"
+                        ]
+                    ),
+
+                curve_version=
+                    int(
+                        data[
+                            "curve_version"
+                        ]
+                    ),
+
+                reference_version=(
+                    int(
+                        data[
+                            "reference_version"
+                        ]
+                    )
+                    if data.get(
+                        "reference_version"
+                    )
+                    is not None
+                    else None
+                ),
+
+                event_time=
+                    data.get(
+                        "event_time"
+                    ),
+
+                price_change=(
+                    float(
+                        data[
+                            "price_change"
+                        ]
+                    )
+                    if data.get(
+                        "price_change"
+                    )
+                    is not None
+                    else None
+                ),
+
+                source_event_id=
+                    data.get(
+                        "source_event_id"
+                    ),
+
+                calculation_trace_id=
+                    data.get(
+                        "calculation_trace_id"
+                    ),
+
+                dependency_tenor=
+                    data.get(
+                        "dependency_tenor"
+                    ),
+
+                dependency_weight=(
+                    float(
+                        data[
+                            "dependency_weight"
+                        ]
+                    )
+                    if data.get(
+                        "dependency_weight"
+                    )
+                    is not None
+                    else None
+                ),
+
+                source="redis",
+            )
+        )
+
+    return results
+
+
+def price_history(
+    instrument_id: int,
+    *,
+    limit: int = 50,
+) -> list[HistoricalPriceObservation]:
+    """
+    Return historical evaluated prices newest-first.
+    """
+
+    if limit <= 0:
+        return []
+
+    limit = min(
+        limit,
+        500,
+    )
+
+    client = _clickhouse_client()
 
     result = client.query(
         """
         SELECT
             instrument_id,
-            argMax(
-                clean_price,
-                event_time
-            ) AS clean_price,
-            argMax(
-                dirty_price,
-                event_time
-            ) AS dirty_price,
-            argMax(
-                yield_to_maturity,
-                event_time
-            ) AS yield_to_maturity,
-            argMax(
-                g_spread_bps,
-                event_time
-            ) AS g_spread_bps,
-            argMax(
-                modified_duration,
-                event_time
-            ) AS modified_duration,
-            argMax(
-                quality_score,
-                event_time
-            ) AS quality_score,
-            argMax(
-                quality_status,
-                event_time
-            ) AS quality_status,
-            argMax(
-                curve_version,
-                event_time
-            ) AS curve_version,
-            argMax(
-                reference_version,
-                event_time
-            ) AS reference_version
+            event_time,
+            clean_price,
+            dirty_price,
+            yield_to_maturity,
+            g_spread_bps,
+            modified_duration,
+            convexity,
+            curve_version,
+            reference_version,
+            quality_score,
+            quality_status,
+            model_version,
+            calculation_trace_id,
+            source_event_id
         FROM evaluated_prices
-        WHERE instrument_id IN
-            {instrument_ids:Array(UInt64)}
-        GROUP BY instrument_id
-        ORDER BY instrument_id
+        WHERE instrument_id =
+            {instrument_id:UInt64}
+        ORDER BY event_time DESC
+        LIMIT {limit:UInt32}
+        """,
+        parameters={
+            "instrument_id":
+                instrument_id,
+
+            "limit":
+                limit,
+        },
+    )
+
+    return [
+        HistoricalPriceObservation(
+            instrument_id=int(row[0]),
+            event_time=str(row[1]),
+
+            clean_price=float(row[2]),
+            dirty_price=float(row[3]),
+
+            yield_to_maturity=
+                float(row[4]),
+
+            g_spread_bps=
+                float(row[5]),
+
+            modified_duration=
+                float(row[6]),
+
+            convexity=
+                float(row[7]),
+
+            curve_version=
+                int(row[8]),
+
+            reference_version=
+                int(row[9]),
+
+            quality_score=
+                float(row[10]),
+
+            quality_status=
+                str(row[11]),
+
+            model_version=
+                str(row[12]),
+
+            calculation_trace_id=
+                str(row[13]),
+
+            source_event_id=
+                str(row[14]),
+
+            source="clickhouse",
+        )
+        for row
+        in result.result_rows
+    ]
+
+
+def curve_events(
+    *,
+    curve_name: str = "UST",
+    since_version: int | None = None,
+    limit: int = 50,
+) -> list[CurveEventObservation]:
+    """
+    Return recent yield-curve events newest-first.
+    """
+
+    if limit <= 0:
+        return []
+
+    limit = min(
+        limit,
+        500,
+    )
+
+    client = _clickhouse_client()
+
+    version_filter = ""
+
+    parameters: dict[str, object] = {
+        "curve_name":
+            curve_name,
+
+        "limit":
+            limit,
+    }
+
+    if since_version is not None:
+        version_filter = """
+        AND curve_version >=
+            {since_version:UInt64}
+        """
+
+        parameters[
+            "since_version"
+        ] = since_version
+
+    result = client.query(
+        f"""
+        SELECT
+            event_time,
+            event_id,
+            curve_version,
+            curve_name,
+            tenor,
+            old_rate,
+            new_rate,
+            source,
+            scenario_name,
+            recorded_at
+        FROM curve_events
+        WHERE curve_name =
+            {{curve_name:String}}
+        {version_filter}
+        ORDER BY
+            curve_version DESC,
+            event_time DESC
+        LIMIT {{limit:UInt32}}
         """,
         parameters=parameters,
     )
 
     return [
-        PriceObservation(
-            instrument_id=row[0],
-            clean_price=row[1],
-            dirty_price=row[2],
-            yield_to_maturity=row[3],
-            g_spread_bps=row[4],
-            modified_duration=row[5],
-            quality_score=row[6],
-            quality_status=row[7],
-            curve_version=row[8],
-            reference_version=row[9],
+        CurveEventObservation(
+            event_time=str(row[0]),
+            event_id=str(row[1]),
+
+            curve_version=
+                int(row[2]),
+
+            curve_name=
+                str(row[3]),
+
+            tenor=
+                str(row[4]),
+
+            old_rate=
+                float(row[5]),
+
+            new_rate=
+                float(row[6]),
+
+            source=
+                str(row[7]),
+
+            scenario_name=
+                str(row[8]),
+
+            recorded_at=
+                str(row[9]),
         )
-        for row in result.result_rows
+        for row
+        in result.result_rows
     ]
+
+
+def explain_price_move(
+    instrument_id: int,
+) -> PriceMoveAttribution:
+    """
+    Deterministically attribute the latest observed price move
+    to the associated yield-curve event.
+
+    Duration and convexity provide a local approximation of the
+    curve-driven return. Any unexplained difference is reported
+    as a residual; no causal explanation is invented for it.
+    """
+
+    prices = latest_prices(
+        [instrument_id]
+    )
+
+    if not prices:
+        raise ValueError(
+            "No current price available for "
+            f"instrument {instrument_id}"
+        )
+
+    price = prices[0]
+
+    events = curve_events(
+        since_version=price.curve_version,
+        limit=50,
+    )
+
+    event = next(
+        (
+            item
+            for item in events
+            if (
+                item.curve_version
+                == price.curve_version
+                and (
+                    price.source_event_id is None
+                    or item.event_id
+                    == price.source_event_id
+                )
+                and (
+                    price.dependency_tenor is None
+                    or item.tenor
+                    == price.dependency_tenor
+                )
+            )
+        ),
+        None,
+    )
+
+    previous_price = None
+
+    history = price_history(
+        instrument_id,
+        limit=10,
+    )
+
+    for observation in history:
+        if (
+            observation.curve_version
+            < price.curve_version
+        ):
+            previous_price = observation
+            break
+
+    observed_change = price.price_change
+
+    if (
+        observed_change is None
+        and previous_price is not None
+    ):
+        observed_change = (
+            price.clean_price
+            - previous_price.clean_price
+        )
+
+    previous_clean_price = (
+        previous_price.clean_price
+        if previous_price is not None
+        else (
+            price.clean_price
+            - observed_change
+            if observed_change is not None
+            else None
+        )
+    )
+
+    observed_return = None
+
+    if (
+        observed_change is not None
+        and previous_clean_price is not None
+        and previous_clean_price != 0.0
+    ):
+        observed_return = (
+            observed_change
+            / previous_clean_price
+        )
+
+    if event is None:
+        return PriceMoveAttribution(
+            instrument_id=instrument_id,
+            curve_version=price.curve_version,
+            source_event_id=price.source_event_id,
+            dependency_tenor=price.dependency_tenor,
+            current_clean_price=price.clean_price,
+            previous_clean_price=previous_clean_price,
+            observed_price_change=observed_change,
+            observed_return=observed_return,
+            modified_duration=price.modified_duration,
+            convexity=price.convexity,
+            explanation=(
+                "The latest price move is available, but no "
+                "matching stored curve event was found, so "
+                "Mercator cannot make a deterministic "
+                "curve attribution."
+            ),
+        )
+
+    delta_y = (
+        event.new_rate
+        - event.old_rate
+    )
+
+    rate_change_bps = (
+        delta_y
+        * 10_000.0
+    )
+
+    duration_return = (
+        -price.modified_duration
+        * delta_y
+    )
+
+    convexity_return = (
+        0.5
+        * price.convexity
+        * delta_y
+        * delta_y
+        if price.convexity is not None
+        else None
+    )
+
+    estimated_curve_return = (
+        duration_return
+        + (
+            convexity_return
+            if convexity_return is not None
+            else 0.0
+        )
+    )
+
+    estimated_curve_price_change = None
+
+    if previous_clean_price is not None:
+        estimated_curve_price_change = (
+            previous_clean_price
+            * estimated_curve_return
+        )
+
+    residual = None
+
+    if (
+        observed_change is not None
+        and estimated_curve_price_change
+        is not None
+    ):
+        residual = (
+            observed_change
+            - estimated_curve_price_change
+        )
+
+    direction = (
+        "rose"
+        if rate_change_bps > 0.0
+        else "fell"
+        if rate_change_bps < 0.0
+        else "was unchanged"
+    )
+
+    explanation = (
+        f"The {event.tenor} curve rate {direction} by "
+        f"{abs(rate_change_bps):.2f} bp. "
+        f"With modified duration "
+        f"{price.modified_duration:.2f}"
+    )
+
+    if price.convexity is not None:
+        explanation += (
+            f" and convexity "
+            f"{price.convexity:.2f}"
+        )
+
+    explanation += (
+        ", the local duration/convexity approximation "
+        f"implies a curve-driven return of "
+        f"{estimated_curve_return * 100.0:.4f}%."
+    )
+
+    if observed_change is not None:
+        explanation += (
+            f" The observed clean-price change was "
+            f"{observed_change:+.6f}."
+        )
+
+    if residual is not None:
+        explanation += (
+            f" The remaining residual was "
+            f"{residual:+.6f}; Mercator does not assign "
+            "a causal explanation to that residual "
+            "without additional evidence."
+        )
+
+    return PriceMoveAttribution(
+        instrument_id=instrument_id,
+        curve_version=price.curve_version,
+        source_event_id=price.source_event_id,
+        dependency_tenor=event.tenor,
+        old_rate=event.old_rate,
+        new_rate=event.new_rate,
+        rate_change_bps=rate_change_bps,
+        previous_clean_price=previous_clean_price,
+        current_clean_price=price.clean_price,
+        observed_price_change=observed_change,
+        observed_return=observed_return,
+        modified_duration=price.modified_duration,
+        convexity=price.convexity,
+        duration_return=duration_return,
+        convexity_return=convexity_return,
+        estimated_curve_return=estimated_curve_return,
+        estimated_curve_price_change=
+            estimated_curve_price_change,
+        residual_price_change=residual,
+        explanation=explanation,
+    )
