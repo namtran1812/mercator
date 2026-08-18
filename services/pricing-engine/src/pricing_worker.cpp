@@ -671,8 +671,11 @@ int main() {
                 );
 
 
-            const auto start =
+            const auto processing_start =
                 steady_clock::now();
+
+            const auto pricing_start =
+                processing_start;
 
 
             std::vector<EvaluatedPrice>
@@ -701,16 +704,16 @@ int main() {
             }
 
 
-            const auto end =
+            const auto pricing_end =
                 steady_clock::now();
 
 
-            const double elapsed_ms =
+            const double pricing_ms =
                 duration<
                     double,
                     std::milli
                 >(
-                    end - start
+                    pricing_end - pricing_start
                 ).count();
 
 
@@ -729,9 +732,24 @@ int main() {
              * evaluated prices have been accepted by
              * ClickHouse.
              */
+            const auto clickhouse_start =
+                steady_clock::now();
+
             price_sink.insert(
                 prices
             );
+
+            const auto clickhouse_end =
+                steady_clock::now();
+
+            const double clickhouse_ms =
+                duration<
+                    double,
+                    std::milli
+                >(
+                    clickhouse_end
+                    - clickhouse_start
+                ).count();
 
 
             /*
@@ -740,10 +758,25 @@ int main() {
              * Redis represents latest state + live
              * notification. ClickHouse remains authoritative.
              */
+            const auto redis_start =
+                steady_clock::now();
+
             redis_sink.publish(
                 prices,
                 event
             );
+
+            const auto redis_end =
+                steady_clock::now();
+
+            const double redis_ms =
+                duration<
+                    double,
+                    std::milli
+                >(
+                    redis_end
+                    - redis_start
+                ).count();
 
 
             version_guard.commit(
@@ -757,10 +790,34 @@ int main() {
                 );
 
 
+            const auto kafka_commit_start =
+                steady_clock::now();
+
             commit_message(
                 consumer.get(),
                 message
             );
+
+            const auto processing_end =
+                steady_clock::now();
+
+            const double kafka_commit_ms =
+                duration<
+                    double,
+                    std::milli
+                >(
+                    processing_end
+                    - kafka_commit_start
+                ).count();
+
+            const double e2e_ms =
+                duration<
+                    double,
+                    std::milli
+                >(
+                    processing_end
+                    - processing_start
+                ).count();
 
 
             std::cout
@@ -781,8 +838,16 @@ int main() {
                     .instrument_count()
                 << " repriced="
                 << prices.size()
-                << " latency_ms="
-                << elapsed_ms
+                << " pricing_ms="
+                << pricing_ms
+                << " clickhouse_ms="
+                << clickhouse_ms
+                << " redis_ms="
+                << redis_ms
+                << " kafka_commit_ms="
+                << kafka_commit_ms
+                << " e2e_ms="
+                << e2e_ms
                 << "\n";
         }
         catch (const std::exception& error) {

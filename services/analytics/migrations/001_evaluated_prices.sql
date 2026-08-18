@@ -23,4 +23,6 @@ CREATE TABLE IF NOT EXISTS mercator.evaluated_prices
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(event_time)
-ORDER BY (instrument_id, event_time);
+ORDER BY (instrument_id, event_time)
+SETTINGS
+    non_replicated_deduplication_window = 1000;

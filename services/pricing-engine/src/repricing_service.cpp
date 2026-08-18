@@ -4,8 +4,10 @@
 
 #include <algorithm>
 #include <chrono>
+#include <future>
 #include <iomanip>
 #include <sstream>
+#include <thread>
 #include <stdexcept>
 
 namespace mercator::pricing {
@@ -136,29 +138,35 @@ RepricingService::affected_instruments(
 namespace {
 
 std::vector<EvaluatedPrice>
-price_instruments(
+price_instrument_range(
     const Date valuation_date,
     const std::unordered_map<
         InstrumentId,
         PricingInstrument
     >& instruments,
     const std::vector<InstrumentId>& instrument_ids,
+    const std::size_t begin,
+    const std::size_t end,
     const CurveUpdateEvent& event,
-    const YieldCurve& updated_curve
+    const YieldCurve& updated_curve,
+    const std::chrono::system_clock::time_point received_time
 ) {
     std::vector<EvaluatedPrice> results;
 
     results.reserve(
-        instrument_ids.size()
+        end - begin
     );
 
-    const auto received_time =
-        std::chrono::system_clock::now();
 
     for (
-        const InstrumentId instrument_id :
-        instrument_ids
+        std::size_t index = begin;
+        index < end;
+        ++index
     ) {
+        const InstrumentId instrument_id =
+            instrument_ids[index];
+
+
         const auto iterator =
             instruments.find(
                 instrument_id
@@ -174,8 +182,10 @@ price_instruments(
             );
         }
 
+
         const PricingInstrument& instrument =
             iterator->second;
+
 
         const PriceBreakdown prices =
             price_from_curve(
@@ -185,6 +195,7 @@ price_instruments(
                 instrument.spread_bps
             );
 
+
         const double solved_g_spread_bps =
             solve_g_spread_bps(
                 instrument.schedule,
@@ -193,6 +204,7 @@ price_instruments(
                 prices.dirty_price
             );
 
+
         const BondAnalytics analytics =
             calculate_bond_analytics(
                 instrument.schedule.cashflows,
@@ -200,6 +212,7 @@ price_instruments(
                 prices.dirty_price,
                 instrument.schedule.payments_per_year
             );
+
 
         results.push_back(
             EvaluatedPrice{
@@ -234,7 +247,8 @@ price_instruments(
                     instrument.market_confidence,
 
                 .quality_status =
-                    instrument.market_confidence >= 0.80
+                    instrument.market_confidence
+                        >= 0.80
                         ? "VALID"
                         : "LOW_CONFIDENCE",
 
@@ -258,6 +272,169 @@ price_instruments(
             }
         );
     }
+
+
+    return results;
+}
+
+
+std::vector<EvaluatedPrice>
+price_instruments(
+    const Date valuation_date,
+    const std::unordered_map<
+        InstrumentId,
+        PricingInstrument
+    >& instruments,
+    const std::vector<InstrumentId>& instrument_ids,
+    const CurveUpdateEvent& event,
+    const YieldCurve& updated_curve
+) {
+    if (instrument_ids.empty()) {
+        return {};
+    }
+
+
+    const auto received_time =
+        std::chrono::system_clock::now();
+
+
+    /*
+     * Instrument valuation is independent across the
+     * requested universe.
+     *
+     * Keep the output deterministic by assigning
+     * contiguous input ranges to workers and merging
+     * futures in range order.
+     */
+    const unsigned int hardware_threads =
+        std::thread::hardware_concurrency();
+
+
+    const std::size_t worker_count =
+        std::min<std::size_t>(
+            instrument_ids.size(),
+            std::max<std::size_t>(
+                1,
+                hardware_threads == 0
+                    ? 4
+                    : hardware_threads
+            )
+        );
+
+
+    /*
+     * Avoid parallel overhead for very small updates.
+     */
+    constexpr std::size_t minimum_parallel_size =
+        512;
+
+
+    if (
+        worker_count == 1
+        || instrument_ids.size()
+            < minimum_parallel_size
+    ) {
+        return price_instrument_range(
+            valuation_date,
+            instruments,
+            instrument_ids,
+            0,
+            instrument_ids.size(),
+            event,
+            updated_curve,
+            received_time
+        );
+    }
+
+
+    const std::size_t chunk_size =
+        (
+            instrument_ids.size()
+            + worker_count
+            - 1
+        )
+        / worker_count;
+
+
+    std::vector<
+        std::future<
+            std::vector<EvaluatedPrice>
+        >
+    > futures;
+
+    futures.reserve(
+        worker_count
+    );
+
+
+    for (
+        std::size_t begin = 0;
+        begin < instrument_ids.size();
+        begin += chunk_size
+    ) {
+        const std::size_t end =
+            std::min(
+                begin + chunk_size,
+                instrument_ids.size()
+            );
+
+
+        futures.push_back(
+            std::async(
+                std::launch::async,
+                [
+                    valuation_date,
+                    &instruments,
+                    &instrument_ids,
+                    begin,
+                    end,
+                    &event,
+                    &updated_curve,
+                    received_time
+                ]() {
+                    return price_instrument_range(
+                        valuation_date,
+                        instruments,
+                        instrument_ids,
+                        begin,
+                        end,
+                        event,
+                        updated_curve,
+                        received_time
+                    );
+                }
+            )
+        );
+    }
+
+
+    std::vector<EvaluatedPrice> results;
+
+    results.reserve(
+        instrument_ids.size()
+    );
+
+
+    /*
+     * Futures are consumed in submission order, so
+     * result ordering remains identical to the input
+     * instrument ordering.
+     */
+    for (auto& future : futures) {
+        auto chunk =
+            future.get();
+
+        results.insert(
+            results.end(),
+            std::make_move_iterator(
+                chunk.begin()
+            ),
+            std::make_move_iterator(
+                chunk.end()
+            )
+        );
+    }
+
 
     return results;
 }
