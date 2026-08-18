@@ -527,3 +527,36 @@ target_link_libraries(
     PRIVATE
     mercator-pricing-core
 )
+
+
+# ============================================================
+# Parallel repricing equivalence test
+# ============================================================
+
+add_executable(
+    mercator-parallel-repricing-equivalence-tests
+    tests/parallel_repricing_equivalence_test.cpp
+)
+
+target_link_libraries(
+    mercator-parallel-repricing-equivalence-tests
+
+    PRIVATE
+    mercator-pricing-core
+)
+
+target_compile_options(
+    mercator-parallel-repricing-equivalence-tests
+
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wshadow
+)
+
+add_test(
+    NAME mercator-parallel-repricing-equivalence-tests
+    COMMAND mercator-parallel-repricing-equivalence-tests
+)

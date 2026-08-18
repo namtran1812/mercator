@@ -433,6 +433,15 @@ int main() {
     };
 
 
+    const std::size_t pricing_workers =
+        static_cast<std::size_t>(
+            environment_uint64(
+                "PRICING_WORKERS",
+                8
+            )
+        );
+
+
     const AdaptiveRepricingPolicy policy{
         .error_budget_bps =
             environment_double(
@@ -492,6 +501,7 @@ int main() {
         std::move(
             universe.instruments
         ),
+        pricing_workers,
     };
 
 
@@ -524,6 +534,15 @@ int main() {
         << "\n"
         << "full_reprice_fraction="
         << policy.full_reprice_fraction
+        << "\n"
+        << "pricing_workers="
+        << (
+            pricing_workers == 0
+                ? std::string{"auto"}
+                : std::to_string(
+                    pricing_workers
+                )
+        )
         << "\n";
 
 

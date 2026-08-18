@@ -106,11 +106,13 @@ std::string make_trace_id(
 RepricingService::RepricingService(
     const Date valuation_date,
     PricingDependencyGraph dependency_graph,
-    std::unordered_map<InstrumentId, PricingInstrument> instruments
+    std::unordered_map<InstrumentId, PricingInstrument> instruments,
+    const std::size_t pricing_workers
 )
     : valuation_date_(valuation_date),
       dependency_graph_(std::move(dependency_graph)),
-      instruments_(std::move(instruments)) {}
+      instruments_(std::move(instruments)),
+      pricing_workers_(pricing_workers) {}
 
 std::vector<InstrumentId>
 RepricingService::affected_instruments(
@@ -287,7 +289,8 @@ price_instruments(
     >& instruments,
     const std::vector<InstrumentId>& instrument_ids,
     const CurveUpdateEvent& event,
-    const YieldCurve& updated_curve
+    const YieldCurve& updated_curve,
+    const std::size_t requested_workers
 ) {
     if (instrument_ids.empty()) {
         return {};
@@ -310,14 +313,24 @@ price_instruments(
         std::thread::hardware_concurrency();
 
 
+    const std::size_t automatic_workers =
+        hardware_threads == 0
+            ? 4
+            : hardware_threads;
+
+
+    const std::size_t configured_workers =
+        requested_workers == 0
+            ? automatic_workers
+            : requested_workers;
+
+
     const std::size_t worker_count =
         std::min<std::size_t>(
             instrument_ids.size(),
             std::max<std::size_t>(
                 1,
-                hardware_threads == 0
-                    ? 4
-                    : hardware_threads
+                configured_workers
             )
         );
 
@@ -452,7 +465,8 @@ RepricingService::reprice(
         instruments_,
         affected_instruments(event),
         event,
-        updated_curve
+        updated_curve,
+        pricing_workers_
     );
 }
 
@@ -484,7 +498,8 @@ RepricingService::reprice_all(
         instruments_,
         instrument_ids,
         event,
-        updated_curve
+        updated_curve,
+        pricing_workers_
     );
 }
 

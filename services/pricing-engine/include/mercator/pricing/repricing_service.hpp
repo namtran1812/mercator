@@ -25,7 +25,8 @@ public:
     RepricingService(
         Date valuation_date,
         PricingDependencyGraph dependency_graph,
-        std::unordered_map<InstrumentId, PricingInstrument> instruments
+        std::unordered_map<InstrumentId, PricingInstrument> instruments,
+        std::size_t pricing_workers = 0
     );
 
     [[nodiscard]] std::vector<EvaluatedPrice> reprice(
@@ -51,6 +52,7 @@ private:
     Date valuation_date_;
     PricingDependencyGraph dependency_graph_;
     std::unordered_map<InstrumentId, PricingInstrument> instruments_;
+    std::size_t pricing_workers_;
 };
 
 }  // namespace mercator::pricing
