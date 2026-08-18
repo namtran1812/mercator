@@ -128,13 +128,6 @@ h2 {
   font-size: 25px;
 }
 
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 12px;
-  min-height: 660px;
-}
-
 .market-panel,
 .agent-panel {
   padding: 18px;
@@ -752,137 +745,6 @@ h2 {
   color: #47e6a1;
 }
 
-.rfq-panel {
-  margin-top: 14px;
-  border: 1px solid #202830;
-  padding: 18px;
-  background: #0a0e12;
-}
-
-.rfq-form {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 10px;
-  margin: 16px 0 10px;
-}
-
-.rfq-form label {
-  color: #7f8c97;
-  font-size: 11px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.rfq-form select,
-.rfq-form input {
-  width: 100%;
-  margin-top: 7px;
-  border: 1px solid #27323a;
-  border-radius: 3px;
-  padding: 10px;
-  color: #e0e8ed;
-  background: #090d10;
-}
-
-.rfq-panel > button,
-.rfq-session > button {
-  border: 1px solid #47e6a1;
-  border-radius: 3px;
-  padding: 10px 16px;
-  color: #08110d;
-  background: #47e6a1;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.rfq-panel button:disabled {
-  cursor: wait;
-  opacity: 0.5;
-}
-
-.rfq-session {
-  margin-top: 16px;
-  border-top: 1px solid #222c34;
-  padding-top: 16px;
-}
-
-.rfq-session-header {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.rfq-session-header span {
-  display: block;
-  color: #7f8c97;
-  font-size: 11px;
-  text-transform: uppercase;
-}
-
-.rfq-session-header strong,
-.rfq-session-header code {
-  display: block;
-  margin-top: 5px;
-  overflow-wrap: anywhere;
-}
-
-.dealer-quote-list {
-  display: grid;
-  gap: 8px;
-  margin: 12px 0;
-}
-
-.dealer-quote-list article {
-  display: grid;
-  grid-template-columns:
-    1.6fr 1fr 1fr 90px 100px;
-  gap: 10px;
-  align-items: center;
-  border: 1px solid #263039;
-  padding: 12px;
-  background: #0d1216;
-}
-
-.dealer-quote-list article > div span {
-  display: block;
-  color: #73808a;
-  font-size: 10px;
-  text-transform: uppercase;
-}
-
-.dealer-quote-list article > div strong {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-}
-
-.best-dealer-quote {
-  border-color: #47e6a1 !important;
-  background:
-    rgba(
-      71,
-      230,
-      161,
-      0.06
-    ) !important;
-}
-
-.best-badge {
-  display: inline-block !important;
-  width: fit-content;
-  margin-top: 5px;
-  border: 1px solid #47e6a1;
-  border-radius: 2px;
-  padding: 2px 5px;
-  color: #47e6a1 !important;
-  font-size: 9px !important;
-}
-
-.execution-success {
-  margin-top: 12px;
-  color: #47e6a1;
-}
 
 .rfq-analytics-panel {
   margin-top: 14px;
@@ -1132,4 +994,325 @@ h2 {
 .quality-issue span {
   font-size: 0.82rem;
   opacity: 0.78;
+}
+
+
+/* ============================================================
+   Simplified Mercator workspace
+   ============================================================ */
+
+.primary-workspace {
+  display: grid;
+  grid-template-columns:
+    minmax(560px, 1.15fr)
+    minmax(420px, 0.85fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.universe-panel {
+  min-width: 0;
+}
+
+.security-workspace {
+  min-width: 0;
+}
+
+.security-workspace .details-panel {
+  margin-top: 0;
+}
+
+.primary-workspace .bond-grid {
+  height: 560px;
+}
+
+.primary-workspace .details-panel {
+  min-height: 560px;
+}
+
+.primary-workspace .chart-card {
+  margin-top: 14px;
+}
+
+.primary-workspace .chart-card
+.recharts-responsive-container {
+  max-height: 190px;
+}
+
+.panel-meta {
+  color: #7f8c97;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  font-size: 11px;
+}
+
+.system-alert {
+  margin-bottom: 12px;
+  border: 1px solid #653535;
+  padding: 10px 14px;
+  color: #ff9c9c;
+  background: #1b0e0e;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  font-size: 12px;
+}
+
+
+/* Analysis */
+
+.analysis-workspace {
+  margin-top: 12px;
+  border: 1px solid #202830;
+  background: rgba(12, 16, 20, 0.94);
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid #202830;
+  padding: 0 14px;
+}
+
+.workspace-tab {
+  width: auto !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  padding: 14px 15px !important;
+  color: #7f8c97 !important;
+  background: transparent !important;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.workspace-tab:hover {
+  color: #d8e0e6 !important;
+}
+
+.workspace-tab.active {
+  border-bottom-color: #47e6a1 !important;
+  color: #e8edf2 !important;
+}
+
+.workspace-content {
+  padding: 18px;
+}
+
+.workspace-content .agent-panel {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workspace-content
+.agent-panel textarea {
+  max-width: 900px;
+}
+
+.workspace-content
+.agent-panel > button {
+  width: auto;
+  min-width: 180px;
+}
+
+
+/* Advanced */
+
+.advanced-workspace {
+  margin-top: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #202830;
+  background: #0a0e12;
+}
+
+.advanced-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  padding: 16px 18px;
+  color: #dbe3e9;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.advanced-toggle .eyebrow {
+  margin-bottom: 3px;
+}
+
+.advanced-toggle > span:last-child {
+  color: #47e6a1;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  font-size: 20px;
+}
+
+.advanced-content {
+  border-top: 1px solid #202830;
+}
+
+.advanced-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  border-bottom: 1px solid #202830;
+  padding: 10px 14px;
+}
+
+.advanced-tabs button {
+  flex: 0 0 auto;
+  border: 1px solid #27323a;
+  border-radius: 3px;
+  padding: 8px 12px;
+  color: #8996a1;
+  background: #0b1014;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.advanced-tabs button:hover,
+.advanced-tabs button.active {
+  border-color: #47e6a1;
+  color: #47e6a1;
+}
+
+.advanced-panel {
+  padding: 4px 18px 18px;
+}
+
+.advanced-panel
+.scenario-panel,
+.advanced-panel
+.rfq-panel,
+.advanced-panel
+.rfq-analytics-panel,
+.advanced-panel
+.relative-value-panel,
+.advanced-panel
+.carry-roll-panel,
+.advanced-panel
+.portfolio-panel,
+.advanced-panel
+.live-pnl-panel {
+  margin-top: 14px;
+}
+
+
+/* Existing agent quick actions become compact */
+
+.agent-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.agent-panel
+.agent-quick-actions button {
+  width: auto;
+  border-color: #27323a;
+  padding: 8px 11px;
+  color: #b5c0c8;
+  background: #0c1216;
+  font-size: 11px;
+}
+
+.agent-panel
+.agent-quick-actions button:hover:not(:disabled) {
+  border-color: #47e6a1;
+  color: #47e6a1;
+}
+
+
+/* Responsive layout */
+
+@media (max-width: 1180px) {
+  body {
+    min-width: 0;
+  }
+
+  .terminal-shell {
+    padding: 16px;
+  }
+
+  .primary-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-workspace .details-panel {
+    min-height: 0;
+  }
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .terminal-shell {
+    padding: 10px;
+  }
+
+  .terminal-header {
+    align-items: flex-start;
+  }
+
+  .terminal-header h1 {
+    font-size: 27px;
+  }
+
+  .desktop-status {
+    display: none;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .metric-card {
+    padding: 12px;
+  }
+
+  .metric-card strong {
+    font-size: 19px;
+  }
+
+  .primary-workspace .bond-grid {
+    height: 480px;
+  }
+
+  .details-metrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-tabs {
+    overflow-x: auto;
+    padding: 0 5px;
+  }
+
+  .workspace-content {
+    padding: 13px;
+  }
+
+  .advanced-panel {
+    padding:
+      2px 10px
+      10px;
+  }
 }

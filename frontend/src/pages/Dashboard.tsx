@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+
 import { AgentPanel } from "../components/AgentPanel/AgentPanel";
 import { BondGrid } from "../components/BondGrid/BondGrid";
 import { BondDetails } from "../components/BondDetails/BondDetails";
@@ -12,12 +13,35 @@ import { RfqPanel } from "../components/RfqPanel/RfqPanel";
 import { RfqAnalyticsPanel } from "../components/RfqAnalyticsPanel/RfqAnalyticsPanel";
 import { RelativeValuePanel } from "../components/RelativeValuePanel/RelativeValuePanel";
 import { CarryRollPanel } from "../components/CarryRollPanel/CarryRollPanel";
+
 import { fetchLatestPrices } from "../services/market";
 import { useMarketStore } from "../store/useMarketStore";
 import { usePriceStream } from "../hooks/usePriceStream";
 
+type WorkspaceTab =
+  | "analysis"
+  | "relative-value"
+  | "provenance";
+
+type AdvancedTab =
+  | "scenario"
+  | "carry"
+  | "portfolio"
+  | "pnl"
+  | "rfq";
+
 export function Dashboard() {
   usePriceStream();
+
+  const [workspaceTab, setWorkspaceTab] =
+    useState<WorkspaceTab>("analysis");
+
+  const [advancedOpen, setAdvancedOpen] =
+    useState(false);
+
+  const [advancedTab, setAdvancedTab] =
+    useState<AdvancedTab>("scenario");
+
   const setBonds = useMarketStore(
     (state) => state.setBonds,
   );
@@ -60,31 +84,27 @@ export function Dashboard() {
       <header className="terminal-header">
         <div>
           <span className="eyebrow">
-            Fixed-Income Intelligence Platform
+            Fixed-Income Intelligence
           </span>
+
           <h1>Mercator</h1>
         </div>
 
         <div className="header-status">
           <span>
             {isLoading
-              ? "Loading prices"
+              ? "Loading"
               : `${bonds.length} instruments`}
           </span>
 
-          <span>
-            {dataUpdatedAt
-              ? new Date(
-                  dataUpdatedAt,
-                ).toLocaleTimeString()
-              : "Not updated"}
-          </span>
-
           {lastStreamUpdate && (
-            <span>
+            <span className="desktop-status">
               {lastStreamUpdate.dependencyTenor}
               {" · "}
-              {(lastStreamUpdate.dependencyWeight * 100).toFixed(1)}
+              {(
+                lastStreamUpdate.dependencyWeight
+                * 100
+              ).toFixed(1)}
               %
             </span>
           )}
@@ -96,50 +116,240 @@ export function Dashboard() {
                 : "live-indicator"
             }
           >
-            {isError ? "DISCONNECTED" : "LIVE"}
+            {isError ? "OFFLINE" : "LIVE"}
           </span>
+
+          {dataUpdatedAt > 0 && (
+            <span className="desktop-status">
+              {new Date(
+                dataUpdatedAt,
+              ).toLocaleTimeString()}
+            </span>
+          )}
         </div>
       </header>
 
       <MarketSummary />
 
-      <section className="workspace">
-        <div className="market-panel">
+      {isError && (
+        <div className="system-alert">
+          Market API unavailable.
+        </div>
+      )}
+
+      <section className="primary-workspace">
+        <section className="market-panel universe-panel">
           <div className="panel-heading">
             <div>
               <span className="eyebrow">
-                Pricing universe
+                Market
               </span>
+
               <h2>Corporate bonds</h2>
             </div>
 
-            <span>
+            <span className="panel-meta">
               {selectedBond
-                ? `Selected #${selectedBond.instrument_id}`
-                : "Select an instrument"}
+                ? `#${selectedBond.instrument_id}`
+                : "Select instrument"}
             </span>
           </div>
 
-          {isError && (
-            <p className="error-text">
-              Market API is unavailable on port
-              8005.
-            </p>
-          )}
-
           <BondGrid />
-          <ScenarioPanel />
-          <RfqPanel />
-          <RfqAnalyticsPanel />
-          <RelativeValuePanel />
-          <CarryRollPanel />
-          <PortfolioPanel />
-          <LivePnlPanel />
-          <ReplayPanel />
+        </section>
+
+        <section className="security-workspace">
           <BondDetails />
+        </section>
+      </section>
+
+      <section className="analysis-workspace">
+        <div className="workspace-tabs">
+          <button
+            type="button"
+            className={
+              workspaceTab === "analysis"
+                ? "workspace-tab active"
+                : "workspace-tab"
+            }
+            onClick={() =>
+              setWorkspaceTab("analysis")
+            }
+          >
+            Analysis
+          </button>
+
+          <button
+            type="button"
+            className={
+              workspaceTab === "relative-value"
+                ? "workspace-tab active"
+                : "workspace-tab"
+            }
+            onClick={() =>
+              setWorkspaceTab(
+                "relative-value",
+              )
+            }
+          >
+            Relative value
+          </button>
+
+          <button
+            type="button"
+            className={
+              workspaceTab === "provenance"
+                ? "workspace-tab active"
+                : "workspace-tab"
+            }
+            onClick={() =>
+              setWorkspaceTab("provenance")
+            }
+          >
+            Replay
+          </button>
         </div>
 
-        <AgentPanel />
+        <div className="workspace-content">
+          {workspaceTab === "analysis" && (
+            <AgentPanel />
+          )}
+
+          {workspaceTab === "relative-value" && (
+            <RelativeValuePanel />
+          )}
+
+          {workspaceTab === "provenance" && (
+            <ReplayPanel />
+          )}
+        </div>
+      </section>
+
+      <section className="advanced-workspace">
+        <button
+          type="button"
+          className="advanced-toggle"
+          onClick={() =>
+            setAdvancedOpen(
+              (current) => !current,
+            )
+          }
+        >
+          <span>
+            <span className="eyebrow">
+              Tools
+            </span>
+
+            <strong>
+              Advanced analytics
+            </strong>
+          </span>
+
+          <span>
+            {advancedOpen ? "−" : "+"}
+          </span>
+        </button>
+
+        {advancedOpen && (
+          <div className="advanced-content">
+            <nav className="advanced-tabs">
+              <button
+                type="button"
+                className={
+                  advancedTab === "scenario"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setAdvancedTab("scenario")
+                }
+              >
+                Scenario
+              </button>
+
+              <button
+                type="button"
+                className={
+                  advancedTab === "carry"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setAdvancedTab("carry")
+                }
+              >
+                Carry & Roll
+              </button>
+
+              <button
+                type="button"
+                className={
+                  advancedTab === "portfolio"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setAdvancedTab("portfolio")
+                }
+              >
+                Portfolio
+              </button>
+
+              <button
+                type="button"
+                className={
+                  advancedTab === "pnl"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setAdvancedTab("pnl")
+                }
+              >
+                Live P&L
+              </button>
+
+              <button
+                type="button"
+                className={
+                  advancedTab === "rfq"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setAdvancedTab("rfq")
+                }
+              >
+                RFQ
+              </button>
+            </nav>
+
+            <div className="advanced-panel">
+              {advancedTab === "scenario" && (
+                <ScenarioPanel />
+              )}
+
+              {advancedTab === "carry" && (
+                <CarryRollPanel />
+              )}
+
+              {advancedTab === "portfolio" && (
+                <PortfolioPanel />
+              )}
+
+              {advancedTab === "pnl" && (
+                <LivePnlPanel />
+              )}
+
+              {advancedTab === "rfq" && (
+                <>
+                  <RfqPanel />
+                  <RfqAnalyticsPanel />
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
