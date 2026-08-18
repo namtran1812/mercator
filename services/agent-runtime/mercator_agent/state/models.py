@@ -349,6 +349,29 @@ class EtfAnalyticsSnapshot(BaseModel):
     shares_outstanding: float | None
 
 
+class QualityIssue(BaseModel):
+    code: str
+    severity: str
+    message: str
+    instrument_id: int | None = None
+
+
+class QualityAssessment(BaseModel):
+    status: str
+    score: float = Field(
+        ge=0.0,
+        le=1.0,
+    )
+
+    instrument_ids: list[int] = Field(
+        default_factory=list
+    )
+
+    issues: list[QualityIssue] = Field(
+        default_factory=list
+    )
+
+
 class ClientBrief(BaseModel):
     issuer_name: str
     question: str
@@ -379,6 +402,8 @@ class AgentState(
     prices: list[
         PriceObservation
     ]
+
+    quality: QualityAssessment
 
     price_attribution: list[
         PriceMoveAttribution
@@ -414,6 +439,8 @@ class AgentQueryResponse(BaseModel):
     prices: list[PriceObservation] = Field(
         default_factory=list
     )
+
+    quality: QualityAssessment | None = None
 
     price_attribution: list[
         PriceMoveAttribution

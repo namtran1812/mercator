@@ -1109,3 +1109,27 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.quality-issues {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.quality-issue {
+  display: grid;
+  gap: 0.2rem;
+  border: 1px solid
+    rgba(148, 163, 184, 0.18);
+  border-radius: 0.45rem;
+  padding: 0.6rem;
+}
+
+.quality-issue strong {
+  font-size: 0.72rem;
+}
+
+.quality-issue span {
+  font-size: 0.82rem;
+  opacity: 0.78;
+}

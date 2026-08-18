@@ -356,10 +356,32 @@ export interface AgentRelativeValueResult {
 }
 
 
+export interface QualityIssue {
+  code: string;
+  severity: "WARNING" | "BLOCKING";
+  message: string;
+  instrument_id: number | null;
+}
+
+
+export interface QualityAssessment {
+  status:
+    | "HEALTHY"
+    | "DEGRADED"
+    | "BLOCKED";
+
+  score: number;
+  instrument_ids: number[];
+  issues: QualityIssue[];
+}
+
+
 export interface AgentQueryResponse {
   brief: ClientBrief | null;
 
   prices: BondPrice[];
+
+  quality: QualityAssessment | null;
 
   price_attribution: PriceMoveAttribution[];
 

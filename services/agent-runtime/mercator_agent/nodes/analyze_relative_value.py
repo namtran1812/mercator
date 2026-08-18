@@ -43,6 +43,33 @@ def analyze_relative_value_node(
             },
         }
 
+    quality = state.get(
+        "quality"
+    )
+
+    if (
+        quality is not None
+        and quality.status == "BLOCKED"
+    ):
+        return {
+            "relative_value": [],
+
+            "diagnostics": {
+                **state.get(
+                    "diagnostics",
+                    {},
+                ),
+
+                "relative_value": {
+                    "status": "blocked",
+                    "reason":
+                        "data_quality_blocked",
+                    "quality_score":
+                        quality.score,
+                },
+            },
+        }
+
     prices = state.get(
         "prices",
         [],
@@ -131,6 +158,34 @@ def analyze_relative_value_node(
                     target_ids,
             )
         )
+
+        #
+        # Preserve the economic calculation, but never
+        # present degraded upstream data as a high-
+        # conviction signal.
+        #
+        if (
+            quality is not None
+            and quality.status
+            == "DEGRADED"
+        ):
+            results = [
+                result.model_copy(
+                    update={
+                        "confidence":
+                            "LOW",
+
+                        "interpretation":
+                            (
+                                result.interpretation
+                                + "; upstream market "
+                                "data quality is "
+                                "degraded"
+                            ),
+                    }
+                )
+                for result in results
+            ]
 
         return {
             "relative_value":

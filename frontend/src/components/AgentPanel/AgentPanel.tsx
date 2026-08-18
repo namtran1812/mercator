@@ -241,6 +241,57 @@ export function AgentPanel() {
       )}
 
 
+      {result?.quality && (
+        <section className="agent-analysis-card">
+          <div className="panel-heading">
+            <div>
+              <span className="eyebrow">
+                Data quality
+              </span>
+
+              <h3>
+                {result.quality.status}
+              </h3>
+            </div>
+
+            <strong>
+              {(
+                result.quality.score
+                * 100
+              ).toFixed(0)}
+              %
+            </strong>
+          </div>
+
+          {result.quality.issues.length === 0 ? (
+            <p>
+              Current pricing provenance passed
+              Mercator quality checks.
+            </p>
+          ) : (
+            <div className="quality-issues">
+              {result.quality.issues.map(
+                (issue) => (
+                  <div
+                    key={`${issue.code}-${issue.instrument_id ?? "global"}`}
+                    className="quality-issue"
+                  >
+                    <strong>
+                      {issue.code}
+                    </strong>
+
+                    <span>
+                      {issue.message}
+                    </span>
+                  </div>
+                ),
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+
       {relativeValue && (
         <section className="agent-analysis-card">
           <div className="panel-heading">

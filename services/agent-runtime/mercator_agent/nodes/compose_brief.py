@@ -43,6 +43,10 @@ def compose_brief_node(
         [],
     )
 
+    quality = state.get(
+        "quality"
+    )
+
     #
     # Prefer SEC issuer resolution when available.
     #
@@ -80,6 +84,29 @@ def compose_brief_node(
         )
 
     market_observations: list[str] = []
+
+    if quality is not None:
+        if quality.status == "DEGRADED":
+            market_observations.append(
+                (
+                    "Data quality is DEGRADED "
+                    f"(score {quality.score:.2f}). "
+                    "Analytics remain available but "
+                    "should be interpreted with reduced "
+                    "confidence."
+                )
+            )
+
+        elif quality.status == "BLOCKED":
+            market_observations.append(
+                (
+                    "Data quality is BLOCKED "
+                    f"(score {quality.score:.2f}). "
+                    "Mercator suppressed directional "
+                    "analytics that depend on the "
+                    "affected market observations."
+                )
+            )
 
     #
     # Attribution text is produced by deterministic
@@ -244,6 +271,16 @@ def compose_brief_node(
         )
 
     risks: list[str] = []
+
+    if quality is not None:
+        for issue in quality.issues[:5]:
+            risks.append(
+                (
+                    "Data quality "
+                    f"{issue.severity.lower()}: "
+                    f"{issue.message}"
+                )
+            )
 
     plan = state.get(
         "plan"
@@ -486,6 +523,25 @@ def compose_brief_node(
         summary = (
             f"Mercator could not retrieve current market "
             f"observations for {issuer_name}."
+        )
+
+    if (
+        quality is not None
+        and quality.status == "DEGRADED"
+    ):
+        summary = (
+            "Data quality is degraded; "
+            + summary
+        )
+
+    elif (
+        quality is not None
+        and quality.status == "BLOCKED"
+    ):
+        summary = (
+            "Data quality blocked sensitive "
+            "analytics; "
+            + summary
         )
 
     brief = ClientBrief(

@@ -143,6 +143,11 @@ def agent_query(
                 [],
             ),
 
+        quality=
+            result.get(
+                "quality"
+            ),
+
         price_attribution=
             result.get(
                 "price_attribution",

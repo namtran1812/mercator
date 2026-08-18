@@ -6,6 +6,10 @@ from langgraph.graph import (
     StateGraph,
 )
 
+from mercator_agent.nodes.assess_quality import (
+    assess_quality_node,
+)
+
 from mercator_agent.nodes.attribute_price_move import (
     attribute_price_move_node,
 )
@@ -103,6 +107,11 @@ def build_graph():
     )
 
     builder.add_node(
+        "assess_quality",
+        assess_quality_node,
+    )
+
+    builder.add_node(
         "attribute_price_move",
         attribute_price_move_node,
     )
@@ -174,6 +183,11 @@ def build_graph():
 
     builder.add_edge(
         "retrieve_prices",
+        "assess_quality",
+    )
+
+    builder.add_edge(
+        "assess_quality",
         "attribute_price_move",
     )
 

@@ -42,6 +42,33 @@ def attribute_price_move_node(
             },
         }
 
+    quality = state.get(
+        "quality"
+    )
+
+    if (
+        quality is not None
+        and quality.status == "BLOCKED"
+    ):
+        return {
+            "price_attribution": [],
+
+            "diagnostics": {
+                **state.get(
+                    "diagnostics",
+                    {},
+                ),
+
+                "price_attribution": {
+                    "status": "blocked",
+                    "reason":
+                        "data_quality_blocked",
+                    "quality_score":
+                        quality.score,
+                },
+            },
+        }
+
     #
     # Prefer exactly the securities whose current price
     # snapshot was retrieved by the previous graph node.
